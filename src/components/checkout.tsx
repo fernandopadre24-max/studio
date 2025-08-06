@@ -3,6 +3,7 @@
 
 import { useState, useMemo } from 'react';
 import { useStore } from '@/lib/store';
+import type { Product } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -10,7 +11,6 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-  CardDescription,
 } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Minus, Plus, Trash2, DollarSign, Search } from 'lucide-react';
@@ -101,20 +101,21 @@ export default function Checkout() {
   }));
 
   const [paymentMethod, setPaymentMethod] = useState<'Dinheiro' | 'Cartão' | 'PIX'>('Dinheiro');
-  const [amountPaid, setAmountPaid] = useState(0);
+  const [amountPaid, setAmountPaid] = useState('');
 
   const subTotal = useMemo(() => cart.reduce((total, item) => total + item.price * item.quantity, 0), [cart]);
   const [discount, setDiscount] = useState(0);
   const [addition, setAddition] = useState(0);
 
   const total = useMemo(() => subTotal - discount + addition, [subTotal, discount, addition]);
-  const change = useMemo(() => amountPaid > total ? amountPaid - total : 0, [amountPaid, total]);
+  const amountPaidValue = parseFloat(amountPaid) || 0;
+  const change = useMemo(() => amountPaidValue > total ? amountPaidValue - total : 0, [amountPaidValue, total]);
 
   const handleFinalizeSale = () => {
     finalizeSale(paymentMethod, total);
     setDiscount(0);
     setAddition(0);
-    setAmountPaid(0);
+    setAmountPaid('');
   }
 
   return (
@@ -232,13 +233,13 @@ export default function Checkout() {
 
                <div className="bg-red-700 p-3 rounded-md text-white">
                     <Label className="text-red-200 text-xs">SALDO</Label>
-                    <p className="text-2xl font-bold">R$ {(total - amountPaid > 0 ? total - amountPaid : 0).toFixed(2)}</p>
+                    <p className="text-2xl font-bold">R$ {(total - amountPaidValue > 0 ? total - amountPaidValue : 0).toFixed(2)}</p>
                 </div>
                 
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-slate-700 p-3 rounded-md">
                     <Label className="text-slate-400 text-xs">VALOR RECEBIDO</Label>
-                    <Input type="number" value={amountPaid} onChange={(e) => setAmountPaid(Math.max(0, parseFloat(e.target.value) || 0))} className="bg-slate-900 border-slate-700 text-2xl font-bold p-0 border-0 h-auto" />
+                    <Input type="number" value={amountPaid} onChange={(e) => setAmountPaid(e.target.value)} placeholder="0.00" className="bg-slate-900 border-slate-700 text-2xl font-bold p-0 border-0 h-auto" />
                 </div>
                  <div className="bg-slate-700 p-3 rounded-md">
                     <Label className="text-slate-400 text-xs">TROCO</Label>
@@ -262,7 +263,7 @@ export default function Checkout() {
 
           </CardContent>
           <CardFooter className="!p-4">
-                <Button size="lg" disabled={cart.length === 0 || total <= 0 || amountPaid < total} onClick={handleFinalizeSale} className="w-full h-16 text-xl bg-green-600 hover:bg-green-700">
+                <Button size="lg" disabled={cart.length === 0 || total <= 0 || amountPaidValue < total} onClick={handleFinalizeSale} className="w-full h-16 text-xl bg-green-600 hover:bg-green-700">
                     Finalizar Venda
                 </Button>
           </CardFooter>
