@@ -49,11 +49,11 @@ export default function SalesHistory() {
   }, [filteredTransactions]);
 
   return (
-    <Card>
+    <Card className="bg-yellow-100 text-black font-mono">
       <CardHeader>
-        <CardTitle>Histórico de Vendas</CardTitle>
-        <CardDescription>
-            Visualize e filtre todas as transações realizadas. Total vendido: <span className="font-bold text-primary">R$ {totalSales.toFixed(2)}</span>
+        <CardTitle className="text-black">Histórico de Vendas</CardTitle>
+        <CardDescription className="text-black/80">
+            Visualize e filtre todas as transações realizadas. Total vendido: <span className="font-bold text-black">R$ {totalSales.toFixed(2)}</span>
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -62,10 +62,10 @@ export default function SalesHistory() {
             type="date"
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="max-w-sm"
+            className="max-w-sm bg-white/60 border-black/20 focus:bg-white"
           />
           <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] bg-white/60 border-black/20 focus:bg-white">
               <SelectValue placeholder="Forma de Pagamento" />
             </SelectTrigger>
             <SelectContent>
@@ -77,72 +77,70 @@ export default function SalesHistory() {
           </Select>
         </div>
 
-        <div className="rounded-md border">
+        <div className="border border-dashed border-black/20 rounded-md">
             <Table>
                 <TableHeader>
-                    <TableRow>
-                    <TableHead className="w-12"></TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Hora</TableHead>
-                    <TableHead>Forma de Pagamento</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
+                    <TableRow className="border-dashed border-black/20 hover:bg-black/5">
+                    <TableHead className="w-12 text-black"></TableHead>
+                    <TableHead className="text-black">Data</TableHead>
+                    <TableHead className="text-black">Hora</TableHead>
+                    <TableHead className="text-black">Pagamento</TableHead>
+                    <TableHead className="text-right text-black">Total</TableHead>
                     </TableRow>
                 </TableHeader>
-                  <Accordion type="single" collapsible className="w-full" asChild>
-                    <TableBody>
-                    {filteredTransactions.length > 0 ? (
-                        filteredTransactions.map(tx => {
-                            const txDate = new Date(tx.date);
-                            return (
-                            <AccordionItem value={tx.id} key={tx.id} asChild>
-                                <>
-                                    <TableRow>
-                                        <TableCell>
-                                            <AccordionTrigger/>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="font-medium">{txDate.toLocaleDateString()}</div>
-                                        </TableCell>
-                                        <TableCell>{txDate.toLocaleTimeString()}</TableCell>
-                                        <TableCell>
-                                            <Badge variant="outline">{tx.paymentMethod}</Badge>
-                                        </TableCell>
-                                        <TableCell className="text-right font-bold">R$ {tx.total.toFixed(2)}</TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell colSpan={5} className="p-0">
-                                            <AccordionContent>
-                                                    <div className="p-4 bg-muted/50">
-                                                        <h4 className="font-semibold mb-2">Itens da Venda:</h4>
-                                                        <ul className="space-y-1 list-disc list-inside">
-                                                            {tx.items.map(item => (
-                                                                <li key={item.id}>
-                                                                    {item.quantity}x {item.name} - R$ {(item.price * item.quantity).toFixed(2)}
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
-                                            </AccordionContent>
-                                        </TableCell>
-                                    </TableRow>
-                                </>
+                <TableBody>
+                {filteredTransactions.length > 0 ? (
+                    filteredTransactions.map(tx => {
+                        const txDate = new Date(tx.date);
+                        return (
+                        <Accordion type="single" collapsible className="w-full" asChild key={tx.id}>
+                            <AccordionItem value={tx.id} className="border-b-0">
+                                <TableRow className="border-dashed border-black/20 hover:bg-black/5">
+                                    <TableCell className="p-0 pl-4">
+                                        <AccordionTrigger className="py-2 hover:no-underline [&[data-state=open]>svg]:text-black">
+                                            <span className="sr-only">Ver detalhes</span>
+                                        </AccordionTrigger>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="font-medium">{txDate.toLocaleDateString()}</div>
+                                    </TableCell>
+                                    <TableCell>{txDate.toLocaleTimeString()}</TableCell>
+                                    <TableCell>
+                                        <Badge variant="outline" className="border-black/50">{tx.paymentMethod}</Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right font-bold">R$ {tx.total.toFixed(2)}</TableCell>
+                                </TableRow>
+                                <TableRow className="hover:bg-black/5">
+                                    <TableCell colSpan={5} className="p-0">
+                                        <AccordionContent>
+                                                <div className="p-4 bg-black/5">
+                                                    <h4 className="font-semibold mb-2">Itens da Venda:</h4>
+                                                    <ul className="space-y-1 list-disc list-inside">
+                                                        {tx.items.map(item => (
+                                                            <li key={item.id}>
+                                                                {item.quantity}x {item.cod} - {item.name} - R$ {(item.price * item.quantity).toFixed(2)}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                        </AccordionContent>
+                                    </TableCell>
+                                </TableRow>
                             </AccordionItem>
-                            )
-                        })
-                    ) : (
-                        <TableRow>
-                        <TableCell colSpan={5} className="h-24 text-center">
-                            Nenhuma venda encontrada.
-                        </TableCell>
-                        </TableRow>
-                    )}
-                    </TableBody>
-                </Accordion>
+                        </Accordion>
+                        )
+                    })
+                ) : (
+                    <TableRow className="hover:bg-black/5">
+                    <TableCell colSpan={5} className="h-24 text-center">
+                        Nenhuma venda encontrada.
+                    </TableCell>
+                    </TableRow>
+                )}
+                </TableBody>
             </Table>
         </div>
       </CardContent>
     </Card>
   );
 }
-
-    
