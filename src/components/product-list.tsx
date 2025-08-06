@@ -1,0 +1,152 @@
+
+'use client';
+
+import { useState } from 'react';
+import { useStore } from '@/lib/store';
+import type { Product } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Pen, Trash2, PlusCircle } from 'lucide-react';
+
+const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, onSave: (p: any) => void, onDone: () => void }) => {
+    const [name, setName] = useState(product?.name || '');
+    const [price, setPrice] = useState(product?.price || 0);
+    const [stock, setStock] = useState(product?.stock || 0);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onSave({ id: product?.id, name, price, stock });
+        onDone();
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+                <Label htmlFor="name">Nome do Produto</Label>
+                <Input id="name" value={name} onChange={e => setName(e.target.value)} required />
+            </div>
+            <div>
+                <Label htmlFor="price">Preço (R$)</Label>
+                <Input id="price" type="number" step="0.01" value={price} onChange={e => setPrice(parseFloat(e.target.value))} required />
+            </div>
+            <div>
+                <Label htmlFor="stock">Estoque</Label>
+                <Input id="stock" type="number" value={stock} onChange={e => setStock(parseInt(e.target.value, 10))} required />
+            </div>
+            <DialogFooter>
+                 <DialogClose asChild>
+                    <Button type="button" variant="secondary">Cancelar</Button>
+                </DialogClose>
+                <Button type="submit">Salvar</Button>
+            </DialogFooter>
+        </form>
+    )
+}
+
+export default function ProductList() {
+  const { products, addProduct, updateProduct, deleteProduct } = useStore();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+  const handleSave = (productData: Product) => {
+    if (editingProduct) {
+      updateProduct({ ...editingProduct, ...productData });
+    } else {
+      addProduct(productData);
+    }
+  };
+  
+  const openDialogForEdit = (product: Product) => {
+    setEditingProduct(product);
+    setIsDialogOpen(true);
+  }
+
+  const openDialogForNew = () => {
+    setEditingProduct(null);
+    setIsDialogOpen(true);
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+            <div>
+                <CardTitle>Gerenciamento de Produtos</CardTitle>
+                <CardDescription>Adicione, edite ou remova seus produtos.</CardDescription>
+            </div>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                    <Button onClick={openDialogForNew}><PlusCircle className="mr-2 h-4 w-4"/>Adicionar Produto</Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{editingProduct ? 'Editar Produto' : 'Adicionar Novo Produto'}</DialogTitle>
+                    </DialogHeader>
+                    <ProductForm
+                        product={editingProduct}
+                        onSave={handleSave}
+                        onDone={() => setIsDialogOpen(false)}
+                    />
+                </DialogContent>
+            </Dialog>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>Preço</TableHead>
+              <TableHead>Estoque</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {products.map((product) => (
+              <TableRow key={product.id}>
+                <TableCell className="font-medium">{product.name}</TableCell>
+                <TableCell>R$ {product.price.toFixed(2)}</TableCell>
+                <TableCell>{product.stock}</TableCell>
+                <TableCell className="text-right">
+                  <Button variant="ghost" size="icon" onClick={() => openDialogForEdit(product)}>
+                    <Pen className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => deleteProduct(product.id)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
