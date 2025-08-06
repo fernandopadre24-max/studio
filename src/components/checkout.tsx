@@ -13,19 +13,7 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { Minus, Plus, Trash2, ShoppingCart, Check, ChevronsUpDown, DollarSign } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+import { Minus, Plus, Trash2, DollarSign, Search } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -33,10 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { cn } from '@/lib/utils';
-import type { Product } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -49,68 +33,55 @@ import {
 } from '@/components/ui/table';
 
 
-function ProductCombobox() {
-  const [open, setOpen] = useState(false)
-  const [value, setValue] = useState("")
-  const { products, addToCart } = useStore();
+function ProductSelector() {
+    const { products, addToCart } = useStore();
+    const [searchTerm, setSearchTerm] = useState('');
 
-  const handleSelect = (currentValue: string) => {
-    const product = products.find(p => p.name.toLowerCase() === currentValue.toLowerCase());
-    if(product) {
-      addToCart(product);
+    const filteredProducts = useMemo(() => {
+        if (!searchTerm) return products;
+        return products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    }, [products, searchTerm]);
+
+    const handleAddToCart = (product: Product) => {
+        addToCart(product);
     }
-    setValue("");
-    setOpen(false);
-  }
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between"
-        >
-          {value
-            ? products.find((product) => product.name === value)?.name
-            : "Selecione um produto..."}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command>
-          <CommandInput placeholder="Buscar produto..." />
-          <CommandEmpty>Nenhum produto encontrado.</CommandEmpty>
-          <CommandList>
-            <CommandGroup>
-                {products.map((product) => (
-                    <CommandItem
-                    key={product.id}
-                    value={product.name}
-                    onSelect={(currentValue) => handleSelect(currentValue)}
-                    disabled={product.stock <= 0}
-                    >
-                    <Check
-                        className={cn(
-                        "mr-2 h-4 w-4",
-                        value === product.name ? "opacity-100" : "opacity-0"
-                        )}
-                    />
-                    <div className='flex justify-between w-full'>
-                        <span>{product.name}</span>
-                        <span className='text-muted-foreground text-sm'>
-                            R$ {product.price.toFixed(2)} | Estoque: {product.stock}
-                        </span>
+    
+    return (
+        <div className='flex flex-col gap-4'>
+            <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                    type="search"
+                    placeholder="Buscar produtos..."
+                    className="pl-8 sm:w-full"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+            <div className='border rounded-md'>
+                <ScrollArea className="h-[200px]">
+                    <div className='p-2 space-y-1'>
+                    {filteredProducts.map(product => (
+                        <Button 
+                            key={product.id} 
+                            variant="ghost" 
+                            className="w-full justify-start h-auto py-2"
+                            onClick={() => handleAddToCart(product)}
+                            disabled={product.stock <= 0}
+                        >
+                            <div className='flex flex-col items-start'>
+                                <p>{product.name}</p>
+                                <p className='text-sm text-muted-foreground'>
+                                    R$ {product.price.toFixed(2)} | Estoque: {product.stock}
+                                </p>
+                            </div>
+                        </Button>
+                    ))}
                     </div>
-                    </CommandItem>
-                ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  )
+                </ScrollArea>
+            </div>
+        </div>
+    )
 }
 
 
@@ -120,8 +91,15 @@ export default function Checkout() {
     removeFromCart,
     updateCartItemQuantity,
     clearCart,
-    finalizeSale
-  } = useStore();
+    finalizeSale,
+  } = useStore(s => ({
+    cart: s.cart,
+    removeFromCart: s.removeFromCart,
+    updateCartItemQuantity: s.updateCartItemQuantity,
+    clearCart: s.clearCart,
+    finalizeSale: s.finalizeSale,
+  }));
+
   const [paymentMethod, setPaymentMethod] = useState<'Dinheiro' | 'Cartão' | 'PIX'>('Dinheiro');
   const [amountPaid, setAmountPaid] = useState(0);
 
@@ -143,81 +121,82 @@ export default function Checkout() {
     <div className="grid h-full max-h-[calc(100vh-4rem)] grid-cols-1 gap-8 lg:grid-cols-5">
       {/* Product Selection & Cart */}
       <div className="lg:col-span-3">
-        <Card className="h-full flex flex-col">
-          <CardHeader>
-            <CardTitle>Caixa</CardTitle>
-            <CardDescription>Adicione produtos ao carrinho para iniciar uma venda.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col gap-4">
-            <ProductCombobox />
-            <div className="border rounded-md flex-1">
-              <ScrollArea className="h-[calc(100vh-25rem)]">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Produto</TableHead>
-                      <TableHead>Qtd.</TableHead>
-                      <TableHead>Preço</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {cart.length > 0 ? (
-                      cart.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell>{item.name}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                size="icon"
-                                variant="outline"
-                                className="h-6 w-6"
-                                onClick={() => updateCartItemQuantity(item.id, item.quantity - 1)}
-                              >
-                                <Minus className="h-3 w-3" />
-                              </Button>
-                              <span>{item.quantity}</span>
-                              <Button
-                                size="icon"
-                                variant="outline"
-                                className="h-6 w-6"
-                                onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)}
-                              >
-                                <Plus className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                          <TableCell>R$ {item.price.toFixed(2)}</TableCell>
-                          <TableCell>R$ {(item.price * item.quantity).toFixed(2)}</TableCell>
-                          <TableCell>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="text-red-500 hover:text-red-600"
-                              onClick={() => removeFromCart(item.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
+        <div className="grid grid-rows-[auto,1fr] gap-4 h-full">
+            <ProductSelector />
+            <Card className="h-full flex flex-col">
+              <CardHeader>
+                <CardTitle>Carrinho</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 p-0">
+                <div className="border rounded-md">
+                  <ScrollArea className="h-[calc(100vh-32rem)]">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Produto</TableHead>
+                          <TableHead>Qtd.</TableHead>
+                          <TableHead>Preço</TableHead>
+                          <TableHead>Total</TableHead>
+                          <TableHead></TableHead>
                         </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center h-24">
-                          Seu carrinho está vazio.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </ScrollArea>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button variant="outline" size="sm" onClick={clearCart} disabled={cart.length === 0}>Limpar Carrinho</Button>
-          </CardFooter>
-        </Card>
+                      </TableHeader>
+                      <TableBody>
+                        {cart.length > 0 ? (
+                          cart.map((item) => (
+                            <TableRow key={item.id}>
+                              <TableCell>{item.name}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    className="h-6 w-6"
+                                    onClick={() => updateCartItemQuantity(item.id, item.quantity - 1)}
+                                  >
+                                    <Minus className="h-3 w-3" />
+                                  </Button>
+                                  <span>{item.quantity}</span>
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    className="h-6 w-6"
+                                    onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)}
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                              <TableCell>R$ {item.price.toFixed(2)}</TableCell>
+                              <TableCell>R$ {(item.price * item.quantity).toFixed(2)}</TableCell>
+                              <TableCell>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="text-red-500 hover:text-red-600"
+                                  onClick={() => removeFromCart(item.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center h-24">
+                              Seu carrinho está vazio.
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </ScrollArea>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button variant="outline" size="sm" onClick={clearCart} disabled={cart.length === 0}>Limpar Carrinho</Button>
+              </CardFooter>
+            </Card>
+        </div>
       </div>
 
       {/* Payment */}
