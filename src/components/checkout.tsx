@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useStore } from '@/lib/store';
 import type { Product } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Minus, Plus, Trash2, DollarSign, Search } from 'lucide-react';
+import { Minus, Plus, Trash2, DollarSign, Search, ShoppingCart } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -122,40 +122,46 @@ export default function Checkout() {
     setAmountPaid('');
   }
 
+  const totalItems = useMemo(() => cart.length, [cart]);
+  const totalQuantity = useMemo(() => cart.reduce((total, item) => total + item.quantity, 0), [cart]);
+
   return (
     <div className="grid h-full max-h-[calc(100vh-4rem)] grid-cols-1 gap-8 lg:grid-cols-5">
       {/* Product Selection & Cart */}
       <div className="lg:col-span-3">
         <div className="grid grid-rows-[auto,1fr] gap-4 h-full">
             <ProductSelector />
-            <Card className="h-full flex flex-col">
+            <Card className="h-full flex flex-col bg-yellow-100 text-black font-mono">
               <CardHeader>
-                <CardTitle>Carrinho</CardTitle>
+                <CardTitle className="flex items-center gap-2 text-black">
+                    <ShoppingCart />
+                    Cupom Fiscal
+                </CardTitle>
               </CardHeader>
               <CardContent className="flex-1 p-0">
-                <div className="border rounded-md">
-                  <ScrollArea className="h-[calc(100vh-32rem)]">
+                <div className="border-t border-b border-dashed border-black/20">
+                  <ScrollArea className="h-[calc(100vh-34rem)]">
                     <Table>
                       <TableHeader>
-                        <TableRow>
-                          <TableHead>Produto</TableHead>
-                          <TableHead>Qtd.</TableHead>
-                          <TableHead>Preço</TableHead>
-                          <TableHead>Total</TableHead>
+                        <TableRow className="border-dashed border-black/20">
+                          <TableHead className="text-black">Item</TableHead>
+                          <TableHead className="text-black">Qtd</TableHead>
+                          <TableHead className="text-black">Vl. Unit.</TableHead>
+                          <TableHead className="text-black">Vl. Total</TableHead>
                           <TableHead></TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {cart.length > 0 ? (
                           cart.map((item) => (
-                            <TableRow key={item.id}>
-                              <TableCell>{item.name}</TableCell>
+                            <TableRow key={item.id} className="border-dashed border-black/20">
+                              <TableCell className="font-medium">{item.name}</TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-2">
                                   <Button
                                     size="icon"
                                     variant="outline"
-                                    className="h-6 w-6"
+                                    className="h-6 w-6 bg-transparent border-black/20 hover:bg-black/10"
                                     onClick={() => updateCartItemQuantity(item.id, item.quantity - 1)}
                                   >
                                     <Minus className="h-3 w-3" />
@@ -164,7 +170,7 @@ export default function Checkout() {
                                   <Button
                                     size="icon"
                                     variant="outline"
-                                    className="h-6 w-6"
+                                    className="h-6 w-6 bg-transparent border-black/20 hover:bg-black/10"
                                     onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)}
                                   >
                                     <Plus className="h-3 w-3" />
@@ -177,7 +183,7 @@ export default function Checkout() {
                                 <Button
                                   size="icon"
                                   variant="ghost"
-                                  className="text-red-500 hover:text-red-600"
+                                  className="text-red-700 hover:text-red-800 hover:bg-black/10"
                                   onClick={() => removeFromCart(item.id)}
                                 >
                                   <Trash2 className="h-4 w-4" />
@@ -197,8 +203,12 @@ export default function Checkout() {
                   </ScrollArea>
                 </div>
               </CardContent>
-              <CardFooter>
-                <Button variant="outline" size="sm" onClick={clearCart} disabled={cart.length === 0}>Limpar Carrinho</Button>
+              <CardFooter className="flex-col items-start p-4 border-t border-dashed border-black/20 space-y-2">
+                <div className="w-full flex justify-between font-bold">
+                    <span>Nº DE ITENS: {totalItems}</span>
+                    <span>QUANTIDADES: {totalQuantity}</span>
+                </div>
+                <Button variant="outline" size="sm" onClick={clearCart} disabled={cart.length === 0} className="w-full bg-transparent border-black/20 hover:bg-black/10">Limpar Carrinho</Button>
               </CardFooter>
             </Card>
         </div>
@@ -276,3 +286,6 @@ export default function Checkout() {
     </div>
   );
 }
+
+
+    
