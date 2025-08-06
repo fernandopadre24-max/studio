@@ -32,13 +32,14 @@ export function SalesHistory() {
   const filteredTransactions = useMemo(() => {
     return transactions
       .filter(tx => {
+        const txDate = new Date(tx.date); // Ensure date is a Date object
         if (paymentFilter !== 'Todos' && tx.paymentMethod !== paymentFilter) {
           return false;
         }
-        if (dateRange?.from && new Date(tx.date) < dateRange.from) {
+        if (dateRange?.from && txDate < dateRange.from) {
           return false;
         }
-        if (dateRange?.to && new Date(tx.date) > addDays(dateRange.to, 1)) {
+        if (dateRange?.to && txDate > addDays(dateRange.to, 1)) {
           return false;
         }
         return true;
@@ -138,49 +139,52 @@ export function SalesHistory() {
             </TableHeader>
             <TableBody>
               {filteredTransactions.length > 0 ? (
-                filteredTransactions.map(tx => (
-                    <Accordion type="single" collapsible className="w-full" asChild>
-                        <AccordionItem value={tx.id} asChild>
-                           <>
-                            <TableRow key={tx.id}>
-                                <TableCell>
-                                    <div className="font-medium">{new Date(tx.date).toLocaleDateString()}</div>
-                                    <div className="text-sm text-muted-foreground">{new Date(tx.date).toLocaleTimeString()}</div>
-                                </TableCell>
-                                <TableCell>
-                                    <div className="flex items-center gap-2">
-                                        {renderPaymentIcon(tx.paymentMethod)}
-                                        {tx.paymentMethod}
-                                    </div>
-                                </TableCell>
-                                <TableCell className="text-center">{tx.items.reduce((acc, item) => acc + item.quantity, 0)}</TableCell>
-                                <TableCell className="text-right font-medium">R${tx.total.toFixed(2)}</TableCell>
-                                <TableCell className="text-center">
-                                    <AccordionTrigger asChild>
-                                        <Button variant="ghost" size="sm">Ver Itens</Button>
-                                    </AccordionTrigger>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell colSpan={5} className="p-0">
-                                    <AccordionContent>
-                                        <div className="bg-muted/50 p-4">
-                                            <h5 className="font-semibold mb-2">Itens na Venda:</h5>
-                                            <ul className="list-disc pl-5 space-y-1">
-                                                {tx.items.map(item => (
-                                                    <li key={item.id}>
-                                                        {item.name} ({item.quantity}x) - R${(item.price * item.quantity).toFixed(2)}
-                                                    </li>
-                                                ))}
-                                            </ul>
+                filteredTransactions.map(tx => {
+                    const txDate = new Date(tx.date); // Ensure date is a Date object
+                    return (
+                        <Accordion type="single" collapsible className="w-full" asChild key={tx.id}>
+                            <AccordionItem value={tx.id} asChild>
+                               <>
+                                <TableRow>
+                                    <TableCell>
+                                        <div className="font-medium">{txDate.toLocaleDateString()}</div>
+                                        <div className="text-sm text-muted-foreground">{txDate.toLocaleTimeString()}</div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2">
+                                            {renderPaymentIcon(tx.paymentMethod)}
+                                            {tx.paymentMethod}
                                         </div>
-                                    </AccordionContent>
-                                </TableCell>
-                            </TableRow>
-                           </>
-                        </AccordionItem>
-                    </Accordion>
-                ))
+                                    </TableCell>
+                                    <TableCell className="text-center">{tx.items.reduce((acc, item) => acc + item.quantity, 0)}</TableCell>
+                                    <TableCell className="text-right font-medium">R${tx.total.toFixed(2)}</TableCell>
+                                    <TableCell className="text-center">
+                                        <AccordionTrigger asChild>
+                                            <Button variant="ghost" size="sm">Ver Itens</Button>
+                                        </AccordionTrigger>
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell colSpan={5} className="p-0">
+                                        <AccordionContent>
+                                            <div className="bg-muted/50 p-4">
+                                                <h5 className="font-semibold mb-2">Itens na Venda:</h5>
+                                                <ul className="list-disc pl-5 space-y-1">
+                                                    {tx.items.map(item => (
+                                                        <li key={item.id}>
+                                                            {item.name} ({item.quantity}x) - R${(item.price * item.quantity).toFixed(2)}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        </AccordionContent>
+                                    </TableCell>
+                                </TableRow>
+                               </>
+                            </AccordionItem>
+                        </Accordion>
+                    );
+                })
               ) : (
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
