@@ -27,12 +27,12 @@ export function SalesChart() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-6 w-6" />
-          Tendências de Vendas
+          Tendências de Vendas por Categoria
         </CardTitle>
-        <CardDescription>Dados fictícios mostrando vendas por categoria.</CardDescription>
+        <CardDescription>Dados fictícios mostrando vendas por categoria nos últimos 30 dias.</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+        <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
           <BarChart data={chartData} accessibilityLayer>
             <CartesianGrid vertical={false} />
             <XAxis
@@ -40,7 +40,7 @@ export function SalesChart() {
               tickLine={false}
               tickMargin={10}
               axisLine={false}
-              tickFormatter={(value) => value.slice(0, 3)}
+              tickFormatter={(value) => value}
             />
             <YAxis 
                 tickFormatter={(value) => `R$${Number(value) / 1000}k`}
