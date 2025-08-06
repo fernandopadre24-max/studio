@@ -21,9 +21,9 @@ export const useStore = create<AppState>()(
   persist(
     (set, get) => ({
       products: [
-        { id: '1', name: 'Café Expresso', price: 5.0, stock: 100 },
-        { id: '2', name: 'Pão de Queijo', price: 3.5, stock: 50 },
-        { id: '3', name: 'Bolo de Fubá', price: 7.0, stock: 30 },
+        { id: '1', cod: 'CAF-EXP', name: 'Café Expresso', price: 5.0, stock: 100 },
+        { id: '2', cod: 'PAO-QJO', name: 'Pão de Queijo', price: 3.5, stock: 50 },
+        { id: '3', cod: 'BOL-FBA', name: 'Bolo de Fubá', price: 7.0, stock: 30 },
       ],
       cart: [],
       transactions: [],

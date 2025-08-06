@@ -39,7 +39,11 @@ function ProductSelector() {
 
     const filteredProducts = useMemo(() => {
         if (!searchTerm) return products;
-        return products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+        return products.filter(p => 
+            p.name.toLowerCase().includes(lowerCaseSearchTerm) ||
+            p.cod.toLowerCase().includes(lowerCaseSearchTerm)
+        );
     }, [products, searchTerm]);
 
     const handleAddToCart = (product: Product) => {
@@ -52,7 +56,7 @@ function ProductSelector() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                     type="search"
-                    placeholder="Buscar produtos..."
+                    placeholder="Buscar por nome ou código..."
                     className="pl-8 sm:w-full"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -70,7 +74,7 @@ function ProductSelector() {
                             disabled={product.stock <= 0}
                         >
                             <div className='flex flex-col items-start'>
-                                <p>{product.name}</p>
+                                <p>{product.cod} - {product.name}</p>
                                 <p className='text-sm text-muted-foreground'>
                                     R$ {product.price.toFixed(2)} | Estoque: {product.stock}
                                 </p>

@@ -37,17 +37,22 @@ import { Pen, Trash2, PlusCircle } from 'lucide-react';
 
 const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, onSave: (p: any) => void, onDone: () => void }) => {
     const [name, setName] = useState(product?.name || '');
+    const [cod, setCod] = useState(product?.cod || '');
     const [price, setPrice] = useState(product?.price || 0);
     const [stock, setStock] = useState(product?.stock || 0);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave({ id: product?.id, name, price, stock });
+        onSave({ id: product?.id, name, cod, price, stock });
         onDone();
     };
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+                <Label htmlFor="cod">Código do Produto</Label>
+                <Input id="cod" value={cod} onChange={e => setCod(e.target.value)} required />
+            </div>
             <div>
                 <Label htmlFor="name">Nome do Produto</Label>
                 <Input id="name" value={name} onChange={e => setName(e.target.value)} required />
@@ -122,6 +127,7 @@ export default function ProductList() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Código</TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Preço</TableHead>
               <TableHead>Estoque</TableHead>
@@ -131,6 +137,7 @@ export default function ProductList() {
           <TableBody>
             {products.map((product) => (
               <TableRow key={product.id}>
+                <TableCell className="font-mono">{product.cod}</TableCell>
                 <TableCell className="font-medium">{product.name}</TableCell>
                 <TableCell>R$ {product.price.toFixed(2)}</TableCell>
                 <TableCell>{product.stock}</TableCell>
