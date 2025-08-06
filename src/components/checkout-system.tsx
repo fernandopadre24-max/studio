@@ -45,8 +45,8 @@ export function CheckoutSystem() {
     const price = parseFloat(productPrice);
     if (!productName || isNaN(price) || price <= 0) {
       toast({
-        title: "Invalid Input",
-        description: "Please enter a valid product name and price.",
+        title: "Entrada Inválida",
+        description: "Por favor, insira um nome de produto e preço válidos.",
         variant: "destructive",
       });
       return;
@@ -78,8 +78,8 @@ export function CheckoutSystem() {
   const handleFinalizeSale = () => {
     if (cart.length === 0) {
       toast({
-        title: "Empty Cart",
-        description: "Cannot finalize an empty sale.",
+        title: "Carrinho Vazio",
+        description: "Não é possível finalizar uma venda vazia.",
         variant: "destructive",
       });
       return;
@@ -94,8 +94,8 @@ export function CheckoutSystem() {
     setCart([]);
     setSuggestions([]);
     toast({
-        title: "Sale Finalized!",
-        description: `Transaction ${newTransaction.id.slice(0, 8)} recorded.`,
+        title: "Venda Finalizada!",
+        description: `Transação ${newTransaction.id.slice(0, 8)} registrada.`,
     });
   };
 
@@ -110,10 +110,10 @@ export function CheckoutSystem() {
       const result = await getUpsellSuggestions({ cartItems: cartItemNames });
       setSuggestions(result.suggestions);
     } catch (error) {
-      console.error("Failed to get upsell suggestions:", error);
+      console.error("Falha ao obter sugestões de upsell:", error);
       toast({
-        title: "AI Error",
-        description: "Could not fetch upsell suggestions.",
+        title: "Erro de IA",
+        description: "Não foi possível buscar sugestões de upsell.",
         variant: "destructive",
       });
     } finally {
@@ -134,33 +134,33 @@ export function CheckoutSystem() {
         {/* Point of Sale and Cart */}
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><ShoppingCart />Point of Sale</CardTitle>
+            <CardTitle className="flex items-center gap-2"><ShoppingCart />Ponto de Venda</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleAddItem} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
               <div className="md:col-span-2">
-                <label htmlFor="productName" className="text-sm font-medium">Product Name</label>
-                <Input id="productName" value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="e.g. Apples" />
+                <label htmlFor="productName" className="text-sm font-medium">Nome do Produto</label>
+                <Input id="productName" value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="ex: Maçãs" />
               </div>
               <div className="md:col-span-2">
-                <label htmlFor="productPrice" className="text-sm font-medium">Price</label>
-                <Input id="productPrice" type="number" value={productPrice} onChange={(e) => setProductPrice(e.target.value)} placeholder="e.g. 1.99" min="0.01" step="0.01" />
+                <label htmlFor="productPrice" className="text-sm font-medium">Preço</label>
+                <Input id="productPrice" type="number" value={productPrice} onChange={(e) => setProductPrice(e.target.value)} placeholder="ex: 1.99" min="0.01" step="0.01" />
               </div>
               <Button type="submit" className="w-full bg-primary hover:bg-primary/90 md:col-span-1">
-                <PlusCircle className="mr-2 h-4 w-4" /> Add Item
+                <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Item
               </Button>
             </form>
             <Separator className="my-6" />
-            <h3 className="text-lg font-semibold mb-2">Current Cart</h3>
+            <h3 className="text-lg font-semibold mb-2">Carrinho Atual</h3>
             <div className="max-h-64 overflow-y-auto rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Qty</TableHead>
-                    <TableHead className="text-right">Price</TableHead>
+                    <TableHead>Produto</TableHead>
+                    <TableHead>Qtd</TableHead>
+                    <TableHead className="text-right">Preço</TableHead>
                     <TableHead className="text-right">Total</TableHead>
-                    <TableHead className="text-center">Actions</TableHead>
+                    <TableHead className="text-center">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -182,7 +182,7 @@ export function CheckoutSystem() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground">Cart is empty</TableCell>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground">O carrinho está vazio</TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -191,12 +191,12 @@ export function CheckoutSystem() {
           </CardContent>
           <CardFooter className="flex flex-col items-end gap-2 bg-secondary/30 p-4 rounded-b-lg">
             <div className="w-full max-w-xs space-y-1 text-right">
-              <p>Subtotal: <span className="font-medium">${subtotal.toFixed(2)}</span></p>
-              <p>Tax ({(TAX_RATE * 100).toFixed(0)}%): <span className="font-medium">${tax.toFixed(2)}</span></p>
-              <p className="text-xl font-bold">Total: <span className="text-primary">${total.toFixed(2)}</span></p>
+              <p>Subtotal: <span className="font-medium">R${subtotal.toFixed(2)}</span></p>
+              <p>Imposto ({(TAX_RATE * 100).toFixed(0)}%): <span className="font-medium">R${tax.toFixed(2)}</span></p>
+              <p className="text-xl font-bold">Total: <span className="text-primary">R${total.toFixed(2)}</span></p>
             </div>
             <Button onClick={handleFinalizeSale} size="lg" className="mt-4 w-full max-w-xs bg-[hsl(var(--accent))] text-accent-foreground hover:bg-[hsl(var(--accent))]/90">
-              <DollarSign className="mr-2 h-5 w-5" /> Finalize Sale
+              <DollarSign className="mr-2 h-5 w-5" /> Finalizar Venda
             </Button>
           </CardFooter>
         </Card>
@@ -204,7 +204,7 @@ export function CheckoutSystem() {
         {/* Transaction History */}
         <Card className="shadow-lg">
             <CardHeader>
-                <CardTitle>Recent Transactions</CardTitle>
+                <CardTitle>Transações Recentes</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="max-h-96 overflow-y-auto rounded-md border">
@@ -212,8 +212,8 @@ export function CheckoutSystem() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>ID</TableHead>
-                                <TableHead>Date</TableHead>
-                                <TableHead>Items</TableHead>
+                                <TableHead>Data</TableHead>
+                                <TableHead>Itens</TableHead>
                                 <TableHead className="text-right">Total</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -224,12 +224,12 @@ export function CheckoutSystem() {
                                         <TableCell className="font-mono text-xs">{tx.id.slice(0, 8)}</TableCell>
                                         <TableCell>{tx.date.toLocaleTimeString()}</TableCell>
                                         <TableCell>{tx.items.map(i => `${i.name} (x${i.quantity})`).join(', ')}</TableCell>
-                                        <TableCell className="text-right font-medium">${tx.total.toFixed(2)}</TableCell>
+                                        <TableCell className="text-right font-medium">R${tx.total.toFixed(2)}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="text-center text-muted-foreground">No transactions yet.</TableCell>
+                                    <TableCell colSpan={4} className="text-center text-muted-foreground">Nenhuma transação ainda.</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
@@ -243,14 +243,14 @@ export function CheckoutSystem() {
         {/* AI Upsell Suggestions */}
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Sparkles className="text-accent" /> AI Upsell Helper</CardTitle>
-            <CardDescription>Suggestions based on cart items.</CardDescription>
+            <CardTitle className="flex items-center gap-2"><Sparkles className="text-accent" /> Assistente de Vendas IA</CardTitle>
+            <CardDescription>Sugestões baseadas nos itens do carrinho.</CardDescription>
           </CardHeader>
           <CardContent className="min-h-[120px]">
             {isLoadingSuggestions ? (
               <div className="flex items-center justify-center gap-2 text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin" />
-                <span>Getting suggestions...</span>
+                <span>Obtendo sugestões...</span>
               </div>
             ) : suggestions.length > 0 ? (
               <ul className="space-y-2">
@@ -263,7 +263,7 @@ export function CheckoutSystem() {
               </ul>
             ) : (
                 <div className="flex items-center justify-center h-full text-muted-foreground">
-                    <p>Add items to cart to see suggestions.</p>
+                    <p>Adicione itens ao carrinho para ver sugestões.</p>
                 </div>
             )}
           </CardContent>

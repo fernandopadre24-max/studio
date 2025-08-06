@@ -29,11 +29,11 @@ const upsellSuggestionsPrompt = ai.definePrompt({
   name: 'upsellSuggestionsPrompt',
   input: {schema: UpsellSuggestionsInputSchema},
   output: {schema: UpsellSuggestionsOutputSchema},
-  prompt: `You are a helpful shopping assistant in a grocery store.
-  Based on the items currently in the cart, suggest other relevant products to upsell or cross-sell to the customer.
-  Be concise and provide a maximum of 3 suggestions.
-  Current cart items: {{cartItems}}
-  Suggestions:`, 
+  prompt: `Você é um assistente de compras prestativo em um supermercado.
+  Com base nos itens atualmente no carrinho, sugira outros produtos relevantes para upsell ou cross-sell para o cliente.
+  Seja conciso e forneça no máximo 3 sugestões.
+  Itens atuais no carrinho: {{cartItems}}
+  Sugestões:`, 
 });
 
 const upsellSuggestionsFlow = ai.defineFlow(
