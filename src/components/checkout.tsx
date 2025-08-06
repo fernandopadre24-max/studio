@@ -54,12 +54,12 @@ function ProductCombobox() {
   const [value, setValue] = useState("")
   const { products, addToCart } = useStore();
 
-  const handleSelect = (productId: string) => {
-    const product = products.find(p => p.id === productId);
+  const handleSelect = (currentValue: string) => {
+    const product = products.find(p => p.name.toLowerCase() === currentValue.toLowerCase());
     if(product) {
       addToCart(product);
     }
-    setValue(""); // Reset after adding
+    setValue("");
     setOpen(false);
   }
 
@@ -73,7 +73,7 @@ function ProductCombobox() {
           className="w-full justify-between"
         >
           {value
-            ? products.find((product) => product.id === value)?.name
+            ? products.find((product) => product.name === value)?.name
             : "Selecione um produto..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -87,14 +87,14 @@ function ProductCombobox() {
                 {products.map((product) => (
                     <CommandItem
                     key={product.id}
-                    value={product.id}
-                    onSelect={() => handleSelect(product.id)}
+                    value={product.name}
+                    onSelect={(currentValue) => handleSelect(currentValue)}
                     disabled={product.stock <= 0}
                     >
                     <Check
                         className={cn(
                         "mr-2 h-4 w-4",
-                        value === product.id ? "opacity-100" : "opacity-0"
+                        value === product.name ? "opacity-100" : "opacity-0"
                         )}
                     />
                     <div className='flex justify-between w-full'>
