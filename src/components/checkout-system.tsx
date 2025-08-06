@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
@@ -9,8 +10,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Separator } from '@/components/ui/separator';
 import { SalesChart } from '@/components/sales-chart';
 import { useToast } from '@/hooks/use-toast';
-import { DollarSign, Lightbulb, PlusCircle, ShoppingCart, Trash2, Loader2, Sparkles } from 'lucide-react';
+import { DollarSign, Lightbulb, PlusCircle, ShoppingCart, Trash2, Loader2, Sparkles, CreditCard, Banknote, QrCode } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import { useProductsStore } from '@/hooks/use-products-store';
 
 interface CartItem {
@@ -20,11 +23,14 @@ interface CartItem {
   quantity: number;
 }
 
+type PaymentMethod = 'Dinheiro' | 'Cartão' | 'PIX';
+
 interface Transaction {
   id: string;
   items: CartItem[];
   total: number;
   date: Date;
+  paymentMethod: PaymentMethod;
 }
 
 const TAX_RATE = 0.05; // 5% tax
@@ -35,6 +41,7 @@ export function CheckoutSystem() {
   const [selectedProductId, setSelectedProductId] = useState<string | undefined>();
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Dinheiro');
   const { toast } = useToast();
   const { products } = useProductsStore();
 
@@ -94,13 +101,14 @@ export function CheckoutSystem() {
       items: cart,
       total,
       date: new Date(),
+      paymentMethod,
     };
     setTransactions([newTransaction, ...transactions]);
     setCart([]);
     setSuggestions([]);
     toast({
         title: "Venda Finalizada!",
-        description: `Transação ${newTransaction.id.slice(0, 8)} registrada.`,
+        description: `Pagamento com ${paymentMethod}. Transação ${newTransaction.id.slice(0, 8)} registrada.`,
     });
   };
 
@@ -125,6 +133,19 @@ export function CheckoutSystem() {
       setIsLoadingSuggestions(false);
     }
   }, [cart, toast]);
+
+  const renderPaymentIcon = (method: PaymentMethod) => {
+    switch (method) {
+        case 'Dinheiro':
+            return <Banknote className="h-4 w-4" />;
+        case 'Cartão':
+            return <CreditCard className="h-4 w-4" />;
+        case 'PIX':
+            return <QrCode className="h-4 w-4" />;
+        default:
+            return null;
+    }
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -205,13 +226,30 @@ export function CheckoutSystem() {
               </Table>
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col items-end gap-2 bg-secondary/30 p-4 rounded-b-lg">
+          <CardFooter className="flex flex-col items-end gap-4 bg-secondary/30 p-4 rounded-b-lg">
             <div className="w-full max-w-xs space-y-1 text-right">
               <p>Subtotal: <span className="font-medium">R${subtotal.toFixed(2)}</span></p>
               <p>Imposto ({(TAX_RATE * 100).toFixed(0)}%): <span className="font-medium">R${tax.toFixed(2)}</span></p>
               <p className="text-xl font-bold">Total: <span className="text-primary">R${total.toFixed(2)}</span></p>
             </div>
-            <Button onClick={handleFinalizeSale} size="lg" className="mt-4 w-full max-w-xs bg-[hsl(var(--accent))] text-accent-foreground hover:bg-[hsl(var(--accent))]/90">
+            <div className="w-full max-w-xs space-y-3">
+                <Label className="font-semibold">Forma de Pagamento</Label>
+                <RadioGroup defaultValue="Dinheiro" value={paymentMethod} onValueChange={(value: PaymentMethod) => setPaymentMethod(value)} className="flex justify-around">
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="Dinheiro" id="r-dinheiro" />
+                        <Label htmlFor="r-dinheiro" className="flex items-center gap-2"><Banknote/>Dinheiro</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="Cartão" id="r-cartao" />
+                        <Label htmlFor="r-cartao" className="flex items-center gap-2"><CreditCard/>Cartão</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="PIX" id="r-pix" />
+                        <Label htmlFor="r-pix" className="flex items-center gap-2"><QrCode/>PIX</Label>
+                    </div>
+                </RadioGroup>
+            </div>
+            <Button onClick={handleFinalizeSale} size="lg" className="w-full max-w-xs bg-[hsl(var(--accent))] text-accent-foreground hover:bg-[hsl(var(--accent))]/90">
               <DollarSign className="mr-2 h-5 w-5" /> Finalizar Venda
             </Button>
           </CardFooter>
@@ -229,7 +267,8 @@ export function CheckoutSystem() {
                             <TableRow>
                                 <TableHead>Data</TableHead>
                                 <TableHead>Hora</TableHead>
-                                <TableHead>Qtd. Itens</TableHead>
+                                <TableHead>Pagamento</TableHead>
+                                <TableHead className="text-center">Qtd. Itens</TableHead>
                                 <TableHead className="text-right">Valor Total</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -239,13 +278,19 @@ export function CheckoutSystem() {
                                     <TableRow key={tx.id}>
                                         <TableCell>{tx.date.toLocaleDateString()}</TableCell>
                                         <TableCell>{tx.date.toLocaleTimeString()}</TableCell>
-                                        <TableCell>{tx.items.reduce((acc, item) => acc + item.quantity, 0)}</TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                {renderPaymentIcon(tx.paymentMethod)}
+                                                {tx.paymentMethod}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-center">{tx.items.reduce((acc, item) => acc + item.quantity, 0)}</TableCell>
                                         <TableCell className="text-right font-medium">R${tx.total.toFixed(2)}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="text-center text-muted-foreground">Nenhuma transação ainda.</TableCell>
+                                    <TableCell colSpan={5} className="text-center text-muted-foreground">Nenhuma transação ainda.</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
@@ -290,4 +335,5 @@ export function CheckoutSystem() {
       </div>
     </div>
   );
-}
+
+    
