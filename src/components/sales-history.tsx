@@ -78,7 +78,6 @@ export default function SalesHistory() {
         </div>
 
         <div className="rounded-md border">
-            <Accordion type="single" collapsible className="w-full">
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -89,58 +88,61 @@ export default function SalesHistory() {
                     <TableHead className="text-right">Total</TableHead>
                     </TableRow>
                 </TableHeader>
-                <TableBody>
-                {filteredTransactions.length > 0 ? (
-                    filteredTransactions.map(tx => {
-                        const txDate = new Date(tx.date);
-                        return (
-                        <AccordionItem value={tx.id} key={tx.id} asChild>
-                            <>
-                                <TableRow>
-                                    <TableCell>
-                                        <AccordionTrigger/>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="font-medium">{txDate.toLocaleDateString()}</div>
-                                    </TableCell>
-                                    <TableCell>{txDate.toLocaleTimeString()}</TableCell>
-                                    <TableCell>
-                                        <Badge variant="outline">{tx.paymentMethod}</Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right font-bold">R$ {tx.total.toFixed(2)}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell colSpan={5} className="p-0">
-                                        <AccordionContent>
-                                                <div className="p-4 bg-muted/50">
-                                                    <h4 className="font-semibold mb-2">Itens da Venda:</h4>
-                                                    <ul className="space-y-1 list-disc list-inside">
-                                                        {tx.items.map(item => (
-                                                            <li key={item.id}>
-                                                                {item.quantity}x {item.name} - R$ {(item.price * item.quantity).toFixed(2)}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                        </AccordionContent>
-                                    </TableCell>
-                                </TableRow>
-                            </>
-                        </AccordionItem>
-                        )
-                    })
-                ) : (
-                    <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
-                        Nenhuma venda encontrada.
-                    </TableCell>
-                    </TableRow>
-                )}
-                </TableBody>
+                  <Accordion type="single" collapsible className="w-full" asChild>
+                    <TableBody>
+                    {filteredTransactions.length > 0 ? (
+                        filteredTransactions.map(tx => {
+                            const txDate = new Date(tx.date);
+                            return (
+                            <AccordionItem value={tx.id} key={tx.id} asChild>
+                                <>
+                                    <TableRow>
+                                        <TableCell>
+                                            <AccordionTrigger/>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="font-medium">{txDate.toLocaleDateString()}</div>
+                                        </TableCell>
+                                        <TableCell>{txDate.toLocaleTimeString()}</TableCell>
+                                        <TableCell>
+                                            <Badge variant="outline">{tx.paymentMethod}</Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right font-bold">R$ {tx.total.toFixed(2)}</TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="p-0">
+                                            <AccordionContent>
+                                                    <div className="p-4 bg-muted/50">
+                                                        <h4 className="font-semibold mb-2">Itens da Venda:</h4>
+                                                        <ul className="space-y-1 list-disc list-inside">
+                                                            {tx.items.map(item => (
+                                                                <li key={item.id}>
+                                                                    {item.quantity}x {item.name} - R$ {(item.price * item.quantity).toFixed(2)}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                            </AccordionContent>
+                                        </TableCell>
+                                    </TableRow>
+                                </>
+                            </AccordionItem>
+                            )
+                        })
+                    ) : (
+                        <TableRow>
+                        <TableCell colSpan={5} className="h-24 text-center">
+                            Nenhuma venda encontrada.
+                        </TableCell>
+                        </TableRow>
+                    )}
+                    </TableBody>
+                </Accordion>
             </Table>
-            </Accordion>
         </div>
       </CardContent>
     </Card>
   );
 }
+
+    
