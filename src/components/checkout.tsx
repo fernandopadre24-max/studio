@@ -54,14 +54,13 @@ function ProductCombobox() {
   const [value, setValue] = useState("")
   const { products, addToCart } = useStore();
 
-  const handleSelect = (currentValue: string) => {
-    const productId = currentValue === value ? "" : currentValue
-    setValue(productId)
+  const handleSelect = (productId: string) => {
     const product = products.find(p => p.id === productId);
     if(product) {
-      addToCart(product)
+      addToCart(product);
     }
-    setOpen(false)
+    setValue(""); // Reset after adding
+    setOpen(false);
   }
 
   return (
@@ -89,7 +88,7 @@ function ProductCombobox() {
                     <CommandItem
                     key={product.id}
                     value={product.id}
-                    onSelect={handleSelect}
+                    onSelect={() => handleSelect(product.id)}
                     disabled={product.stock <= 0}
                     >
                     <Check
@@ -293,5 +292,3 @@ export default function Checkout() {
     </div>
   );
 }
-
-    
