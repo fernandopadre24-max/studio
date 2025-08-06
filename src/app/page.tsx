@@ -1,5 +1,7 @@
 import { CheckoutSystem } from '@/components/checkout-system';
 import { Logo } from '@/components/logo';
+import { ProductManager } from '@/components/product-manager';
+import { Separator } from '@/components/ui/separator';
 
 export default function Home() {
   return (
@@ -11,6 +13,8 @@ export default function Home() {
       </header>
       <main className="container mx-auto p-4 md:p-6">
         <CheckoutSystem />
+        <Separator className="my-8" />
+        <ProductManager />
       </main>
     </div>
   );

@@ -10,6 +10,8 @@ import { Separator } from '@/components/ui/separator';
 import { SalesChart } from '@/components/sales-chart';
 import { useToast } from '@/hooks/use-toast';
 import { DollarSign, Lightbulb, PlusCircle, ShoppingCart, Trash2, Loader2, Sparkles } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useProductsStore } from '@/hooks/use-products-store';
 
 interface CartItem {
   id: string;
@@ -30,11 +32,11 @@ const TAX_RATE = 0.05; // 5% tax
 export function CheckoutSystem() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [productName, setProductName] = useState('');
-  const [productPrice, setProductPrice] = useState('');
+  const [selectedProductId, setSelectedProductId] = useState<string | undefined>();
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const { toast } = useToast();
+  const { products } = useProductsStore();
 
   const subtotal = useMemo(() => cart.reduce((acc, item) => acc + item.price * item.quantity, 0), [cart]);
   const tax = useMemo(() => subtotal * TAX_RATE, [subtotal]);
@@ -42,25 +44,28 @@ export function CheckoutSystem() {
 
   const handleAddItem = (e: React.FormEvent) => {
     e.preventDefault();
-    const price = parseFloat(productPrice);
-    if (!productName || isNaN(price) || price <= 0) {
-      toast({
-        title: "Entrada Inválida",
-        description: "Por favor, insira um nome de produto e preço válidos.",
-        variant: "destructive",
-      });
-      return;
+    if (!selectedProductId) {
+        toast({
+            title: "Nenhum produto selecionado",
+            description: "Por favor, selecione um produto da lista.",
+            variant: "destructive",
+        });
+        return;
     }
+    
+    const productToAdd = products.find(p => p.id === selectedProductId);
 
-    const existingItem = cart.find(item => item.name.toLowerCase() === productName.toLowerCase());
+    if (!productToAdd) return;
+
+
+    const existingItem = cart.find(item => item.id === productToAdd.id);
 
     if (existingItem) {
       setCart(cart.map(item => item.id === existingItem.id ? { ...item, quantity: item.quantity + 1 } : item));
     } else {
-      setCart([...cart, { id: crypto.randomUUID(), name: productName, price, quantity: 1 }]);
+      setCart([...cart, { ...productToAdd, quantity: 1 }]);
     }
-    setProductName('');
-    setProductPrice('');
+    setSelectedProductId(undefined);
   };
 
   const handleRemoveItem = (id: string) => {
@@ -138,16 +143,27 @@ export function CheckoutSystem() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleAddItem} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-              <div className="md:col-span-2">
-                <label htmlFor="productName" className="text-sm font-medium">Nome do Produto</label>
-                <Input id="productName" value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="ex: Maçãs" />
-              </div>
-              <div className="md:col-span-2">
-                <label htmlFor="productPrice" className="text-sm font-medium">Preço</label>
-                <Input id="productPrice" type="number" value={productPrice} onChange={(e) => setProductPrice(e.target.value)} placeholder="ex: 1.99" min="0.01" step="0.01" />
+              <div className="md:col-span-4">
+                <label htmlFor="product-select" className="text-sm font-medium">Selecionar Produto</label>
+                <Select value={selectedProductId} onValueChange={setSelectedProductId}>
+                  <SelectTrigger id="product-select">
+                    <SelectValue placeholder="Escolha um produto para adicionar ao carrinho..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.length > 0 ? (
+                      products.map(product => (
+                        <SelectItem key={product.id} value={product.id}>
+                          {product.name} - R${product.price.toFixed(2)}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-products" disabled>Nenhum produto cadastrado</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
               <Button type="submit" className="w-full bg-primary hover:bg-primary/90 md:col-span-1">
-                <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Item
+                <PlusCircle className="mr-2 h-4 w-4" /> Adicionar
               </Button>
             </form>
             <Separator className="my-6" />
