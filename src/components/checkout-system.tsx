@@ -259,20 +259,23 @@ export function CheckoutSystem() {
                         </TableHeader>
                         <TableBody>
                             {recentTransactions.length > 0 ? (
-                                recentTransactions.map(tx => (
-                                    <TableRow key={tx.id}>
-                                        <TableCell>{tx.date.toLocaleDateString()}</TableCell>
-                                        <TableCell>{tx.date.toLocaleTimeString()}</TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                {renderPaymentIcon(tx.paymentMethod)}
-                                                {tx.paymentMethod}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-center">{tx.items.reduce((acc, item) => acc + item.quantity, 0)}</TableCell>
-                                        <TableCell className="text-right font-medium">R${tx.total.toFixed(2)}</TableCell>
-                                    </TableRow>
-                                ))
+                                recentTransactions.map(tx => {
+                                    const date = new Date(tx.date);
+                                    return (
+                                        <TableRow key={tx.id}>
+                                            <TableCell>{date.toLocaleDateString()}</TableCell>
+                                            <TableCell>{date.toLocaleTimeString()}</TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    {renderPaymentIcon(tx.paymentMethod)}
+                                                    {tx.paymentMethod}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-center">{tx.items.reduce((acc, item) => acc + item.quantity, 0)}</TableCell>
+                                            <TableCell className="text-right font-medium">R${tx.total.toFixed(2)}</TableCell>
+                                        </TableRow>
+                                    );
+                                })
                             ) : (
                                 <TableRow>
                                     <TableCell colSpan={5} className="text-center text-muted-foreground">Nenhuma transação ainda.</TableCell>
@@ -320,3 +323,4 @@ export function CheckoutSystem() {
       </div>
     </div>
   );
+}
