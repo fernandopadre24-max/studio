@@ -14,7 +14,7 @@ interface AppState {
   removeFromCart: (productId: string) => void;
   updateCartItemQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
-  finalizeSale: (paymentMethod: 'Dinheiro' | 'Cartão' | 'PIX') => void;
+  finalizeSale: (paymentMethod: 'Dinheiro' | 'Cartão' | 'PIX', total: number) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -52,22 +52,26 @@ export const useStore = create<AppState>()(
 
         const existingItem = cart.find((item) => item.id === product.id);
 
-        let newCart: CartItem[];
         if (existingItem) {
-          newCart = cart.map((item) =>
+          const quantityDiff = 1;
+          if (productInStock.stock < quantityDiff) return; // Not enough stock
+
+          const newCart = cart.map((item) =>
             item.id === product.id
               ? { ...item, quantity: item.quantity + 1 }
               : item
           );
+           const newProducts = products.map((p) =>
+            p.id === product.id ? { ...p, stock: p.stock - quantityDiff } : p
+          );
+           set({ cart: newCart, products: newProducts });
+
         } else {
-          newCart = [...cart, { ...product, quantity: 1 }];
+           const newProducts = products.map((p) =>
+            p.id === product.id ? { ...p, stock: p.stock - 1 } : p
+          );
+          set({ cart: [...cart, { ...product, quantity: 1 }], products: newProducts });
         }
-
-        const newProducts = products.map((p) =>
-          p.id === product.id ? { ...p, stock: p.stock - 1 } : p
-        );
-
-        set({ cart: newCart, products: newProducts });
       },
       removeFromCart: (productId) => {
         const { cart, products } = get();
@@ -91,7 +95,12 @@ export const useStore = create<AppState>()(
  
          if (productInStock.stock < quantityDiff) return; // Not enough stock
  
-         const newCart = cart.map(item => item.id === productId ? { ...item, quantity } : item).filter(item => item.quantity > 0);
+         if (quantity <= 0) {
+            get().removeFromCart(productId);
+            return;
+         }
+
+         const newCart = cart.map(item => item.id === productId ? { ...item, quantity } : item);
          const newProducts = products.map(p => p.id === productId ? { ...p, stock: p.stock - quantityDiff } : p);
          
          set({ cart: newCart, products: newProducts });
@@ -107,22 +116,21 @@ export const useStore = create<AppState>()(
          });
          set({ cart: [], products: newProducts });
       },
-      finalizeSale: (paymentMethod) => {
+      finalizeSale: (paymentMethod, total) => {
         const { cart } = get();
         if (cart.length === 0) return;
 
-        const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
         const newTransaction: Transaction = {
           id: new Date().toISOString(),
           items: cart,
           total,
           paymentMethod,
-          date: new Date(),
+          date: new Date().toISOString(),
         };
 
         set((state) => ({
           transactions: [newTransaction, ...state.transactions],
-          cart: [], // Esvazia o carrinho após a venda
+          cart: [], 
         }));
       },
     }),

@@ -133,7 +133,7 @@ export default function Checkout() {
   const change = useMemo(() => amountPaid > total ? amountPaid - total : 0, [amountPaid, total]);
 
   const handleFinalizeSale = () => {
-    finalizeSale(paymentMethod);
+    finalizeSale(paymentMethod, total);
     setDiscount(0);
     setAddition(0);
     setAmountPaid(0);
@@ -283,7 +283,7 @@ export default function Checkout() {
 
           </CardContent>
           <CardFooter className="!p-4">
-                <Button size="lg" disabled={cart.length === 0} onClick={handleFinalizeSale} className="w-full h-16 text-xl bg-green-600 hover:bg-green-700">
+                <Button size="lg" disabled={cart.length === 0 || total <= 0 || amountPaid < total} onClick={handleFinalizeSale} className="w-full h-16 text-xl bg-green-600 hover:bg-green-700">
                     Finalizar Venda
                 </Button>
           </CardFooter>
