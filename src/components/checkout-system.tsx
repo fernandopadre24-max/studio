@@ -227,19 +227,19 @@ export function CheckoutSystem() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>ID</TableHead>
                                 <TableHead>Data</TableHead>
-                                <TableHead>Itens</TableHead>
-                                <TableHead className="text-right">Total</TableHead>
+                                <TableHead>Hora</TableHead>
+                                <TableHead>Qtd. Itens</TableHead>
+                                <TableHead className="text-right">Valor Total</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {transactions.length > 0 ? (
                                 transactions.map(tx => (
                                     <TableRow key={tx.id}>
-                                        <TableCell className="font-mono text-xs">{tx.id.slice(0, 8)}</TableCell>
+                                        <TableCell>{tx.date.toLocaleDateString()}</TableCell>
                                         <TableCell>{tx.date.toLocaleTimeString()}</TableCell>
-                                        <TableCell>{tx.items.map(i => `${i.name} (x${i.quantity})`).join(', ')}</TableCell>
+                                        <TableCell>{tx.items.reduce((acc, item) => acc + item.quantity, 0)}</TableCell>
                                         <TableCell className="text-right font-medium">R${tx.total.toFixed(2)}</TableCell>
                                     </TableRow>
                                 ))
