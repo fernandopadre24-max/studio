@@ -137,12 +137,13 @@ export function SalesHistory() {
                 <TableHead className="w-[80px]"></TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
               {filteredTransactions.length > 0 ? (
-                filteredTransactions.map(tx => {
-                    const txDate = new Date(tx.date); // Ensure date is a Date object
+                <Accordion type="single" collapsible className="w-full" asChild>
+                <>
+                {filteredTransactions.map(tx => {
+                    const txDate = new Date(tx.date);
                     return (
-                        <Accordion type="single" collapsible className="w-full" asChild key={tx.id}>
+                        <TableBody key={tx.id}>
                             <AccordionItem value={tx.id} asChild>
                                <>
                                 <TableRow>
@@ -182,17 +183,20 @@ export function SalesHistory() {
                                 </TableRow>
                                </>
                             </AccordionItem>
-                        </Accordion>
+                        </TableBody>
                     );
-                })
+                })}
+                </>
+                </Accordion>
               ) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                    Nenhuma venda encontrada para os filtros selecionados.
-                  </TableCell>
-                </TableRow>
+                <TableBody>
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                      Nenhuma venda encontrada para os filtros selecionados.
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
               )}
-            </TableBody>
           </Table>
         </div>
       </CardContent>
