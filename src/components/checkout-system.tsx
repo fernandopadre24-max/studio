@@ -15,39 +15,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useProductsStore } from '@/hooks/use-products-store';
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-}
-
-type PaymentMethod = 'Dinheiro' | 'Cartão' | 'PIX';
-
-interface Transaction {
-  id: string;
-  items: CartItem[];
-  total: number;
-  date: Date;
-  paymentMethod: PaymentMethod;
-}
+import { useTransactionsStore, CartItem, PaymentMethod, Transaction } from '@/hooks/use-transactions-store';
 
 const TAX_RATE = 0.05; // 5% tax
 
 export function CheckoutSystem() {
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedProductId, setSelectedProductId] = useState<string | undefined>();
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Dinheiro');
   const { toast } = useToast();
   const { products } = useProductsStore();
+  const { transactions, addTransaction } = useTransactionsStore();
 
   const subtotal = useMemo(() => cart.reduce((acc, item) => acc + item.price * item.quantity, 0), [cart]);
   const tax = useMemo(() => subtotal * TAX_RATE, [subtotal]);
   const total = useMemo(() => subtotal + tax, [subtotal, tax]);
+
+  const recentTransactions = useMemo(() => transactions.slice(0, 10), [transactions]);
 
   const handleAddItem = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +49,6 @@ export function CheckoutSystem() {
     const productToAdd = products.find(p => p.id === selectedProductId);
 
     if (!productToAdd) return;
-
 
     const existingItem = cart.find(item => item.id === productToAdd.id);
 
@@ -103,7 +88,7 @@ export function CheckoutSystem() {
       date: new Date(),
       paymentMethod,
     };
-    setTransactions([newTransaction, ...transactions]);
+    addTransaction(newTransaction);
     setCart([]);
     setSuggestions([]);
     toast({
@@ -273,8 +258,8 @@ export function CheckoutSystem() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {transactions.length > 0 ? (
-                                transactions.map(tx => (
+                            {recentTransactions.length > 0 ? (
+                                recentTransactions.map(tx => (
                                     <TableRow key={tx.id}>
                                         <TableCell>{tx.date.toLocaleDateString()}</TableCell>
                                         <TableCell>{tx.date.toLocaleTimeString()}</TableCell>
@@ -335,5 +320,3 @@ export function CheckoutSystem() {
       </div>
     </div>
   );
-
-    

@@ -6,10 +6,11 @@ import { CheckoutSystem } from '@/components/checkout-system';
 import { Logo } from '@/components/logo';
 import { ProductManager } from '@/components/product-manager';
 import { SalesChart } from '@/components/sales-chart';
+import { SalesHistory } from '@/components/sales-history';
 import { Sidebar, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
-import { ShoppingCart, Package, TrendingUp } from 'lucide-react';
+import { ShoppingCart, Package, TrendingUp, List } from 'lucide-react';
 
-type View = 'checkout' | 'products' | 'reports';
+type View = 'checkout' | 'products' | 'reports' | 'sales';
 
 export default function Home() {
   const [activeView, setActiveView] = useState<View>('checkout');
@@ -29,6 +30,8 @@ export default function Home() {
                 </div>
             </div>
         );
+      case 'sales':
+        return <SalesHistory />;
       default:
         return <CheckoutSystem />;
     }
@@ -54,6 +57,12 @@ export default function Home() {
                 Produtos
               </SidebarMenuButton>
             </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton onClick={() => setActiveView('sales')} isActive={activeView === 'sales'} tooltip="Vendas">
+                <List />
+                Vendas
+              </SidebarMenuButton>
+            </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton onClick={() => setActiveView('reports')} isActive={activeView === 'reports'} tooltip="Relatórios">
                 <TrendingUp />
@@ -71,6 +80,7 @@ export default function Home() {
               <h1 className="text-2xl font-bold">
                 {activeView === 'checkout' && 'Caixa'}
                 {activeView === 'products' && 'Gerenciador de Produtos'}
+                {activeView === 'sales' && 'Histórico de Vendas'}
                 {activeView === 'reports' && 'Relatórios'}
               </h1>
             </div>
