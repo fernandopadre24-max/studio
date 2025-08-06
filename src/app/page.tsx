@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -7,7 +8,6 @@ import { ProductManager } from '@/components/product-manager';
 import { SalesChart } from '@/components/sales-chart';
 import { Sidebar, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { ShoppingCart, Package, TrendingUp } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 type View = 'checkout' | 'products' | 'reports';
 
@@ -35,7 +35,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <>
       <Sidebar side="left" collapsible="icon">
         <SidebarHeader>
           <Logo />
@@ -80,6 +80,6 @@ export default function Home() {
           {renderContent()}
         </main>
       </SidebarInset>
-    </div>
+    </>
   );
 }
