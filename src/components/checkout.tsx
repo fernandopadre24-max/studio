@@ -10,11 +10,11 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
+  CardDescription,
 } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { X, Plus, Minus, Trash2, ShoppingCart } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingCart, Check, ChevronsUpDown } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,11 +33,80 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
+import type { Product } from '@/lib/types';
+
+
+function ProductCombobox() {
+  const [open, setOpen] = useState(false)
+  const [value, setValue] = useState("")
+  const { products, addToCart } = useStore();
+
+  const handleSelect = (currentValue: string) => {
+    const productId = currentValue === value ? "" : currentValue
+    setValue(productId)
+    const product = products.find(p => p.id === productId);
+    if(product) {
+      addToCart(product)
+    }
+    setOpen(false)
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between"
+        >
+          {value
+            ? products.find((product) => product.id === value)?.name
+            : "Selecione um produto..."}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+        <Command>
+          <CommandInput placeholder="Buscar produto..." />
+          <CommandEmpty>Nenhum produto encontrado.</CommandEmpty>
+          <CommandList>
+            <CommandGroup>
+                {products.map((product) => (
+                    <CommandItem
+                    key={product.id}
+                    value={product.id}
+                    onSelect={handleSelect}
+                    disabled={product.stock <= 0}
+                    >
+                    <Check
+                        className={cn(
+                        "mr-2 h-4 w-4",
+                        value === product.id ? "opacity-100" : "opacity-0"
+                        )}
+                    />
+                    <div className='flex justify-between w-full'>
+                        <span>{product.name}</span>
+                        <span className='text-muted-foreground text-sm'>
+                            R$ {product.price.toFixed(2)} | Estoque: {product.stock}
+                        </span>
+                    </div>
+                    </CommandItem>
+                ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  )
+}
 
 
 export default function Checkout() {
   const {
-    products,
     cart,
     addToCart,
     removeFromCart,
@@ -59,31 +128,11 @@ export default function Checkout() {
       <div className="lg:col-span-2">
         <Card className="h-full">
           <CardHeader>
-            <CardTitle>Adicionar Produtos ao Carrinho</CardTitle>
+            <CardTitle>Caixa</CardTitle>
+            <CardDescription>Adicione produtos ao carrinho para iniciar uma venda.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[calc(100vh-14rem)]">
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-                {products.map((product) => (
-                  <Card
-                    key={product.id}
-                    className="flex cursor-pointer flex-col items-center justify-center p-4 transition-all hover:shadow-md"
-                    onClick={() => addToCart(product)}
-                    data-ai-hint="product item"
-                  >
-                    <div className="text-center">
-                      <p className="font-semibold">{product.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        R$ {product.price.toFixed(2)}
-                      </p>
-                       <p className="text-xs text-muted-foreground">
-                        Estoque: {product.stock}
-                      </p>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </ScrollArea>
+          <CardContent className="p-6">
+            <ProductCombobox />
           </CardContent>
         </Card>
       </div>
