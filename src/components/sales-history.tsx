@@ -78,69 +78,70 @@ export default function SalesHistory() {
         </div>
 
         <div className="border border-dashed border-black/20 rounded-md">
-            <Table>
-                <TableHeader>
-                    <TableRow className="border-dashed border-black/20 hover:bg-black/5">
-                    <TableHead className="w-12 text-black"></TableHead>
-                    <TableHead className="text-center text-black">Data</TableHead>
-                    <TableHead className="text-center text-black">Hora</TableHead>
-                    <TableHead className="text-center text-black">Pagamento</TableHead>
-                    <TableHead className="text-right text-black">Total</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                {filteredTransactions.length > 0 ? (
-                    filteredTransactions.map(tx => {
-                        const txDate = new Date(tx.date);
-                        return (
-                        <Accordion type="single" collapsible className="w-full" asChild key={tx.id}>
-                            <AccordionItem value={tx.id} className="border-b-0">
-                                <TableRow className="border-dashed border-black/20 hover:bg-black/5">
-                                    <TableCell className="p-0 pl-4">
-                                        <AccordionTrigger className="py-2 hover:no-underline [&[data-state=open]>svg]:text-black">
-                                            <span className="sr-only">Ver detalhes</span>
-                                        </AccordionTrigger>
-                                    </TableCell>
-                                    <TableCell className="text-center">
-                                        <div className="font-medium">{txDate.toLocaleDateString()}</div>
-                                    </TableCell>
-                                    <TableCell className="text-center">{txDate.toLocaleTimeString()}</TableCell>
-                                    <TableCell className="text-center">
-                                        <Badge variant="outline" className="border-black/50">{tx.paymentMethod}</Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right font-bold">R$ {tx.total.toFixed(2)}</TableCell>
-                                </TableRow>
-                                <TableRow className="hover:bg-black/5">
-                                    <TableCell colSpan={5} className="p-0">
-                                        <AccordionContent>
-                                                <div className="p-4 bg-black/5">
-                                                    <h4 className="font-semibold mb-2">Itens da Venda:</h4>
-                                                    <ul className="space-y-1 list-disc list-inside">
-                                                        {tx.items.map(item => (
-                                                            <li key={item.id}>
-                                                                {item.quantity}x {item.cod} - {item.name} - R$ {(item.price * item.quantity).toFixed(2)}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                        </AccordionContent>
-                                    </TableCell>
-                                </TableRow>
-                            </AccordionItem>
-                        </Accordion>
-                        )
-                    })
-                ) : (
-                    <TableRow className="hover:bg-black/5">
-                    <TableCell colSpan={5} className="h-24 text-center">
-                        Nenhuma venda encontrada.
-                    </TableCell>
-                    </TableRow>
-                )}
-                </TableBody>
-            </Table>
+            <Accordion type="single" collapsible className="w-full">
+                <Table>
+                    <TableHeader>
+                        <TableRow className="border-dashed border-black/20 hover:bg-black/5">
+                        <TableHead className="w-12 text-black"></TableHead>
+                        <TableHead className="text-center text-black">Data</TableHead>
+                        <TableHead className="text-center text-black">Hora</TableHead>
+                        <TableHead className="text-center text-black">Pagamento</TableHead>
+                        <TableHead className="text-right text-black">Total</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                    {filteredTransactions.length > 0 ? (
+                        filteredTransactions.map(tx => {
+                            const txDate = new Date(tx.date);
+                            return (
+                                <AccordionItem value={tx.id} key={tx.id} asChild>
+                                    <>
+                                    <TableRow className="border-dashed border-black/20 hover:bg-black/5 data-[state=open]:bg-black/10">
+                                        <TableCell className="p-0 pl-4">
+                                            <AccordionTrigger className="py-4 hover:no-underline [&[data-state=open]>svg]:text-black justify-center" />
+                                        </TableCell>
+                                        <TableCell className="text-center font-medium">
+                                            {txDate.toLocaleDateString()}
+                                        </TableCell>
+                                        <TableCell className="text-center">{txDate.toLocaleTimeString()}</TableCell>
+                                        <TableCell className="text-center">
+                                            <Badge variant="outline" className="border-black/50">{tx.paymentMethod}</Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right font-bold">R$ {tx.total.toFixed(2)}</TableCell>
+                                    </TableRow>
+                                    <TableRow className="hover:bg-black/5">
+                                        <TableCell colSpan={5} className="p-0">
+                                            <AccordionContent>
+                                                    <div className="p-4 bg-black/5">
+                                                        <h4 className="font-semibold mb-2">Itens da Venda:</h4>
+                                                        <ul className="space-y-1 list-disc list-inside">
+                                                            {tx.items.map(item => (
+                                                                <li key={item.id}>
+                                                                    {item.quantity}x {item.cod} - {item.name} - R$ {(item.price * item.quantity).toFixed(2)}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                            </AccordionContent>
+                                        </TableCell>
+                                    </TableRow>
+                                    </>
+                                </AccordionItem>
+                            )
+                        })
+                    ) : (
+                        <TableRow className="hover:bg-black/5">
+                        <TableCell colSpan={5} className="h-24 text-center">
+                            Nenhuma venda encontrada.
+                        </TableCell>
+                        </TableRow>
+                    )}
+                    </TableBody>
+                </Table>
+            </Accordion>
         </div>
       </CardContent>
     </Card>
   );
 }
+
