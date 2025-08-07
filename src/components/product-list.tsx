@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
 import type { Product } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -40,6 +40,13 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
     const [cod, setCod] = useState(product?.cod || '');
     const [price, setPrice] = useState(product?.price || 0);
     const [stock, setStock] = useState(product?.stock || 0);
+    const { getNextProductCode } = useStore();
+
+    useEffect(() => {
+        if (!product) {
+            setCod(getNextProductCode());
+        }
+    }, [product, getNextProductCode]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -51,7 +58,7 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
         <form onSubmit={handleSubmit} className="space-y-4">
             <div>
                 <Label htmlFor="cod">Código do Produto</Label>
-                <Input id="cod" value={cod} onChange={e => setCod(e.target.value)} required />
+                <Input id="cod" value={cod} readOnly disabled />
             </div>
             <div>
                 <Label htmlFor="name">Nome do Produto</Label>

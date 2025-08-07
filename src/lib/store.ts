@@ -12,7 +12,7 @@ interface AppState {
   cashRegisterHistory: CashRegisterSession[];
   currentCashRegister: CashRegisterSession | null;
   theme: ThemeSettings,
-  addProduct: (product: Omit<Product, 'id'>) => void;
+  addProduct: (product: Omit<Product, 'id' | 'cod'>) => void;
   updateProduct: (product: Product) => void;
   deleteProduct: (productId: string) => void;
   addToCart: (product: Product) => void;
@@ -28,6 +28,7 @@ interface AppState {
   closeCashRegister: () => void;
   setTheme: (theme: Partial<ThemeSettings>) => void;
   findProductByCode: (code: string) => Product | undefined;
+  getNextProductCode: () => string;
 }
 
 const defaultTheme: ThemeSettings = {
@@ -55,12 +56,26 @@ export const useStore = create<AppState>()(
       currentCashRegister: null,
       theme: defaultTheme,
 
+      getNextProductCode: () => {
+        const { products } = get();
+        const prodCodes = products
+            .filter(p => p.cod.startsWith('PROD-'))
+            .map(p => parseInt(p.cod.replace('PROD-', ''), 10))
+            .filter(n => !isNaN(n));
+        const maxCode = prodCodes.length > 0 ? Math.max(...prodCodes) : 0;
+        return `PROD-${(maxCode + 1).toString().padStart(4, '0')}`;
+      },
+
       findProductByCode: (code) => {
         return get().products.find(p => p.cod === code);
       },
 
       addProduct: (productData) => {
-        const newProduct: Product = { ...productData, id: new Date().toISOString() };
+        const newProduct: Product = { 
+            ...productData, 
+            id: new Date().toISOString(),
+            cod: get().getNextProductCode(),
+        };
         set((state) => ({ products: [...state.products, newProduct] }));
       },
       updateProduct: (updatedProduct) => {
