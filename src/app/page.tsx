@@ -112,7 +112,7 @@ export default function Home() {
               <ShoppingCart className="h-8 w-8 text-primary" />
               <h1 className="text-2xl font-bold">PDV</h1>
           </div>
-          <nav className="flex flex-col gap-2">
+          <nav className="flex flex-col gap-4">
             <NavItemButton
               label="Caixa"
               icon={LayoutDashboard}
@@ -178,8 +178,19 @@ interface NavItemButtonProps {
 function NavItemButton({ label, icon: Icon, isActive, onClick, disabled }: NavItemButtonProps) {
     return (
         <Button
-            variant={isActive ? 'secondary' : 'ghost'}
-            className="justify-start gap-3 px-3"
+            variant="ghost"
+            className={cn(
+                "justify-start gap-3 px-4 py-6 text-base font-normal rounded-xl transition-all duration-200 ease-in-out",
+                "text-muted-foreground hover:text-foreground",
+                "shadow-[5px_5px_10px_#e0e0e0,-5px_-5px_10px_#ffffff]",
+                "dark:shadow-[5px_5px_10px_#1a1a1a,-5px_-5px_10px_#2a2a2a]",
+                "hover:shadow-[inset_5px_5px_10px_#e0e0e0,inset_-5px_-5px_10px_#ffffff]",
+                "dark:hover:shadow-[inset_5px_5px_10px_#1a1a1a,inset_-5px_-5px_10px_#2a2a2a]",
+                {
+                    "bg-background text-foreground shadow-[inset_5px_5px_10px_#e0e0e0,inset_-5px_-5px_10px_#ffffff] dark:shadow-[inset_5px_5px_10px_#1a1a1a,inset_-5px_-5px_10px_#2a2a2a]": isActive,
+                    "bg-muted/40": !isActive
+                }
+            )}
             onClick={onClick}
             disabled={disabled}
         >
