@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
 import type { Employee, EmployeeRole } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -45,6 +45,20 @@ const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null
     const [name, setName] = useState(employee?.name || '');
     const [cod, setCod] = useState(employee?.cod || '');
     const [role, setRole] = useState<EmployeeRole>(employee?.role || 'Vendedor');
+    const { getNextEmployeeCode } = useStore();
+
+    useEffect(() => {
+        if (!employee) {
+            setCod(getNextEmployeeCode(role));
+        }
+    }, [employee, role, getNextEmployeeCode]);
+
+    const handleRoleChange = (newRole: EmployeeRole) => {
+        setRole(newRole);
+        if (!employee) { // only update code for new employees
+            setCod(getNextEmployeeCode(newRole));
+        }
+    }
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -56,7 +70,7 @@ const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null
         <form onSubmit={handleSubmit} className="space-y-4">
             <div>
                 <Label htmlFor="cod">Código do Funcionário</Label>
-                <Input id="cod" value={cod} onChange={e => setCod(e.target.value)} required />
+                <Input id="cod" value={cod} readOnly disabled />
             </div>
             <div>
                 <Label htmlFor="name">Nome do Funcionário</Label>
@@ -64,7 +78,7 @@ const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null
             </div>
             <div>
                 <Label htmlFor="role">Cargo</Label>
-                <Select value={role} onValueChange={(value: EmployeeRole) => setRole(value)}>
+                <Select value={role} onValueChange={handleRoleChange}>
                     <SelectTrigger id="role">
                         <SelectValue placeholder="Selecione o cargo" />
                     </SelectTrigger>
@@ -90,7 +104,7 @@ export default function EmployeeList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
 
-  const handleSave = (employeeData: Employee) => {
+  const handleSave = (employeeData: Omit<Employee, 'id'>) => {
     if (editingEmployee) {
       updateEmployee({ ...editingEmployee, ...employeeData });
     } else {

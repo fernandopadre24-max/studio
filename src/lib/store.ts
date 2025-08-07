@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Product, CartItem, Transaction, Employee, CashRegisterSession, ThemeSettings, ProductUnit } from '@/lib/types';
+import type { Product, CartItem, Transaction, Employee, CashRegisterSession, ThemeSettings, ProductUnit, EmployeeRole } from '@/lib/types';
 
 interface AppState {
   products: Product[];
@@ -29,6 +29,7 @@ interface AppState {
   setTheme: (theme: Partial<ThemeSettings>) => void;
   findProductByCode: (code: string) => Product | undefined;
   getNextProductCode: () => string;
+  getNextEmployeeCode: (role: EmployeeRole) => string;
 }
 
 const defaultTheme: ThemeSettings = {
@@ -64,6 +65,24 @@ export const useStore = create<AppState>()(
             .filter(n => !isNaN(n));
         const maxCode = prodCodes.length > 0 ? Math.max(...prodCodes) : 0;
         return `PROD-${(maxCode + 1).toString().padStart(4, '0')}`;
+      },
+
+      getNextEmployeeCode: (role: EmployeeRole) => {
+        const { employees } = get();
+        const prefixMap: Record<EmployeeRole, string> = {
+          'Gerente': 'G',
+          'Vendedor': 'V',
+          'Estoquista': 'E'
+        };
+        const prefix = prefixMap[role];
+        
+        const roleEmployees = employees.filter(e => e.role === role);
+        const maxCode = roleEmployees.reduce((max, e) => {
+            const codeNum = parseInt(e.cod.split('-')[1]);
+            return codeNum > max ? codeNum : max;
+        }, 0);
+
+        return `${prefix}-${(maxCode + 1).toString().padStart(3, '0')}`;
       },
 
       findProductByCode: (code) => {
