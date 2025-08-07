@@ -39,12 +39,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Pen, Trash2, PlusCircle } from 'lucide-react';
+import { Pen, Trash2, PlusCircle, User, FileText, Briefcase } from 'lucide-react';
+import { ScrollArea } from './ui/scroll-area';
 
 const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null, onSave: (e: any) => void, onDone: () => void }) => {
     const [name, setName] = useState(employee?.name || '');
     const [cod, setCod] = useState(employee?.cod || '');
     const [role, setRole] = useState<EmployeeRole>(employee?.role || 'Vendedor');
+    const [cpf, setCpf] = useState(employee?.cpf || '');
+    const [rg, setRg] = useState(employee?.rg || '');
+    const [phone, setPhone] = useState(employee?.phone || '');
+    const [address, setAddress] = useState(employee?.address || '');
+    const [admissionDate, setAdmissionDate] = useState(employee?.admissionDate || '');
+    const [salary, setSalary] = useState(employee?.salary || 0);
+
     const { getNextEmployeeCode } = useStore();
 
     useEffect(() => {
@@ -62,34 +70,75 @@ const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave({ id: employee?.id, name, cod, role });
+        onSave({ id: employee?.id, name, cod, role, cpf, rg, phone, address, admissionDate, salary });
         onDone();
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-                <Label htmlFor="cod">Código do Funcionário</Label>
-                <Input id="cod" value={cod} readOnly disabled />
-            </div>
-            <div>
-                <Label htmlFor="name">Nome do Funcionário</Label>
-                <Input id="name" value={name} onChange={e => setName(e.target.value)} required />
-            </div>
-            <div>
-                <Label htmlFor="role">Cargo</Label>
-                <Select value={role} onValueChange={handleRoleChange}>
-                    <SelectTrigger id="role">
-                        <SelectValue placeholder="Selecione o cargo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="Vendedor">Vendedor</SelectItem>
-                        <SelectItem value="Gerente">Gerente</SelectItem>
-                        <SelectItem value="Estoquista">Estoquista</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-            <DialogFooter>
+        <form onSubmit={handleSubmit}>
+            <ScrollArea className="h-[60vh]">
+                <div className="space-y-6 p-4">
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-medium flex items-center gap-2"><Briefcase size={20} /> Informações do Cargo</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <Label htmlFor="cod">Código do Funcionário</Label>
+                                <Input id="cod" value={cod} readOnly disabled />
+                            </div>
+                            <div>
+                                <Label htmlFor="role">Cargo</Label>
+                                <Select value={role} onValueChange={handleRoleChange}>
+                                    <SelectTrigger id="role">
+                                        <SelectValue placeholder="Selecione o cargo" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Vendedor">Vendedor</SelectItem>
+                                        <SelectItem value="Gerente">Gerente</SelectItem>
+                                        <SelectItem value="Estoquista">Estoquista</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                             <div>
+                                <Label htmlFor="admissionDate">Data de Admissão</Label>
+                                <Input id="admissionDate" type="date" value={admissionDate} onChange={e => setAdmissionDate(e.target.value)} />
+                            </div>
+                             <div>
+                                <Label htmlFor="salary">Salário (R$)</Label>
+                                <Input id="salary" type="number" step="0.01" value={salary} onChange={e => setSalary(parseFloat(e.target.value))} />
+                            </div>
+                        </div>
+                    </div>
+                     <div className="space-y-4">
+                        <h3 className="text-lg font-medium flex items-center gap-2"><User size={20} /> Informações Pessoais</h3>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <Label htmlFor="name">Nome Completo</Label>
+                                <Input id="name" value={name} onChange={e => setName(e.target.value)} required />
+                            </div>
+                            <div>
+                                <Label htmlFor="cpf">CPF</Label>
+                                <Input id="cpf" value={cpf} onChange={e => setCpf(e.target.value)} />
+                            </div>
+                             <div>
+                                <Label htmlFor="rg">RG</Label>
+                                <Input id="rg" value={rg} onChange={e => setRg(e.target.value)} />
+                            </div>
+                             <div>
+                                <Label htmlFor="phone">Telefone / Celular</Label>
+                                <Input id="phone" value={phone} onChange={e => setPhone(e.target.value)} />
+                            </div>
+                         </div>
+                    </div>
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-medium flex items-center gap-2"><FileText size={20} /> Endereço</h3>
+                        <div>
+                            <Label htmlFor="address">Endereço Completo</Label>
+                            <Input id="address" value={address} onChange={e => setAddress(e.target.value)} placeholder="Rua, Nº, Bairro, Cidade - Estado, CEP"/>
+                        </div>
+                    </div>
+                </div>
+            </ScrollArea>
+            <DialogFooter className="mt-6">
                  <DialogClose asChild>
                     <Button type="button" variant="secondary">Cancelar</Button>
                 </DialogClose>
@@ -134,7 +183,7 @@ export default function EmployeeList() {
                 <DialogTrigger asChild>
                     <Button onClick={openDialogForNew} className="font-sans bg-slate-800 text-white hover:bg-slate-700"><PlusCircle className="mr-2 h-4 w-4"/>Adicionar Funcionário</Button>
                 </DialogTrigger>
-                <DialogContent className="font-sans">
+                <DialogContent className="font-sans sm:max-w-[800px]">
                     <DialogHeader>
                         <DialogTitle>{editingEmployee ? 'Editar Funcionário' : 'Adicionar Novo Funcionário'}</DialogTitle>
                     </DialogHeader>

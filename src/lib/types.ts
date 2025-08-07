@@ -33,6 +33,12 @@ export interface Employee {
   cod: string;
   name: string;
   role: EmployeeRole;
+  cpf?: string;
+  rg?: string;
+  phone?: string;
+  address?: string;
+  admissionDate?: string;
+  salary?: number;
 }
 
 export type CashRegisterStatus = 'aberto' | 'fechado';
