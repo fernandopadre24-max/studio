@@ -19,16 +19,29 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Printer } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 import { formatDistanceStrict } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import type { Transaction } from '@/lib/types';
+import PrintReceipt from './print-receipt';
 
 export default function SalesHistory() {
   const { transactions, cashRegisterHistory } = useStore();
   const [dateFilter, setDateFilter] = useState('');
   const [paymentFilter, setPaymentFilter] = useState('all');
   const [operatorFilter, setOperatorFilter] = useState('');
+  const [transactionToPrint, setTransactionToPrint] = useState<Transaction | null>(null);
+
+  const handlePrint = (tx: Transaction) => {
+    setTransactionToPrint(tx);
+    setTimeout(() => {
+        window.print();
+        setTransactionToPrint(null);
+    }, 100);
+  }
   
   const filteredTransactions = useMemo(() => {
     const lowerCaseOperatorFilter = operatorFilter.toLowerCase();
@@ -87,6 +100,10 @@ export default function SalesHistory() {
 
 
   return (
+    <>
+    <div className="hidden">
+        {transactionToPrint && <PrintReceipt transaction={transactionToPrint} />}
+    </div>
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         <div className="lg:col-span-2">
             <Card className="bg-yellow-100 text-black font-mono">
@@ -133,6 +150,7 @@ export default function SalesHistory() {
                             <div className="flex-1 text-center text-black">Operador</div>
                             <div className="flex-1 text-center text-black">Pagamento</div>
                             <div className="flex-1 text-right text-black">Total</div>
+                             <div className="w-12 text-center text-black"></div>
                         </div>
                         <Accordion type="single" collapsible className="w-full">
                             {filteredTransactions.length > 0 ? (
@@ -151,6 +169,11 @@ export default function SalesHistory() {
                                                     <Badge variant="outline" className="border-black/50">{tx.paymentMethod}</Badge>
                                                 </div>
                                                 <div className="flex-1 text-right font-bold">R$ {tx.total.toFixed(2)}</div>
+                                                <div className="w-12 text-center">
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-black hover:bg-black/10" onClick={() => handlePrint(tx)}>
+                                                        <Printer size={16} />
+                                                    </Button>
+                                                </div>
                                             </div>
                                             <AccordionContent>
                                                 <div className="p-4 bg-black/5 border-t border-dashed border-black/20">
@@ -248,5 +271,6 @@ export default function SalesHistory() {
             </Card>
         </div>
     </div>
+    </>
   );
 }
