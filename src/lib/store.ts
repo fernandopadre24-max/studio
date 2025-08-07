@@ -7,6 +7,7 @@ interface AppState {
   products: Product[];
   cart: CartItem[];
   transactions: Transaction[];
+  lastTransaction: Transaction | null;
   employees: Employee[];
   currentUser: Employee | null;
   cashRegisterHistory: CashRegisterSession[];
@@ -19,7 +20,7 @@ interface AppState {
   removeFromCart: (productId: string) => void;
   updateCartItemQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
-  finalizeSale: (paymentMethod: 'Dinheiro' | 'Cartão' | 'PIX', total: number) => void;
+  finalizeSale: (paymentMethod: 'Dinheiro' | 'Cartão' | 'PIX', total: number) => Transaction | undefined;
   addEmployee: (employee: Omit<Employee, 'id'>) => void;
   updateEmployee: (employee: Employee) => void;
   deleteEmployee: (employeeId: string) => void;
@@ -30,6 +31,7 @@ interface AppState {
   findProductByCode: (code: string) => Product | undefined;
   getNextProductCode: () => string;
   getNextEmployeeCode: (role: EmployeeRole) => string;
+  setLastTransaction: (transaction: Transaction | null) => void;
 }
 
 const defaultTheme: ThemeSettings = {
@@ -47,6 +49,7 @@ export const useStore = create<AppState>()(
       ],
       cart: [],
       transactions: [],
+      lastTransaction: null,
       employees: [
         { id: '1', cod: 'G-001', name: 'Alice', role: 'Gerente' },
         { id: '2', cod: 'V-001', name: 'Beto', role: 'Vendedor' },
@@ -197,7 +200,9 @@ export const useStore = create<AppState>()(
           },
           cart: [],
           products: newProducts,
+          lastTransaction: newTransaction,
         }));
+        return newTransaction;
       },
 
       addEmployee: (employeeData) => {
@@ -263,14 +268,17 @@ export const useStore = create<AppState>()(
         set((state) => ({
             theme: { ...state.theme, ...newTheme }
         }))
-      }
+      },
+      setLastTransaction: (transaction: Transaction | null) => {
+        set({ lastTransaction: transaction });
+      },
     }),
     {
       name: 'pos-storage',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) =>
         Object.fromEntries(
-          Object.entries(state).filter(([key]) => !['currentUser', 'currentCashRegister'].includes(key))
+          Object.entries(state).filter(([key]) => !['currentUser', 'currentCashRegister', 'lastTransaction'].includes(key))
         ),
     }
   )

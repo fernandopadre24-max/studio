@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useStore } from '@/lib/store';
-import type { Product, CashRegisterSession } from '@/lib/types';
+import type { Product, CashRegisterSession, Transaction } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -14,7 +14,7 @@ import {
   CardDescription
 } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Minus, Plus, Trash2, DollarSign, Search, ShoppingCart, Lock, Unlock, XCircle, QrCode, Camera } from 'lucide-react';
+import { Minus, Plus, Trash2, DollarSign, Search, ShoppingCart, Lock, Unlock, XCircle, QrCode, Camera, CheckCircle, Printer } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -44,6 +44,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import CameraScanner from './camera-scanner';
+import PrintReceipt from './print-receipt';
 
 function ProductSelector() {
     const { products, addToCart, findProductByCode } = useStore();
@@ -286,8 +287,40 @@ function PixScannerDialog({ onScan }: { onScan: (data: string | null) => void })
     )
 }
 
+function SaleSuccessDialog({ transaction, open, onOpenChange }: { transaction: Transaction, open: boolean, onOpenChange: (open: boolean) => void }) {
+    const handlePrint = () => {
+        setTimeout(() => {
+            window.print();
+        }, 100);
+    }
+    
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-md">
+                <DialogHeader>
+                    <div className="flex justify-center">
+                       <CheckCircle className="h-16 w-16 text-green-500" />
+                    </div>
+                    <DialogTitle className="text-center text-2xl">Venda Finalizada!</DialogTitle>
+                    <DialogDescription className="text-center">
+                        Venda no valor de R$ {transaction.total.toFixed(2)} finalizada com sucesso.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="hidden">
+                   <PrintReceipt transaction={transaction} />
+                </div>
+                <DialogFooter className="sm:justify-center pt-4">
+                    <Button type="button" variant="outline" onClick={handlePrint}><Printer className="mr-2 h-4 w-4"/>Imprimir Recibo</Button>
+                    <DialogClose asChild>
+                        <Button type="button">Nova Venda</Button>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 export default function Checkout() {
-  const { toast } = useToast();
   const {
     cart,
     removeFromCart,
@@ -297,7 +330,9 @@ export default function Checkout() {
     currentCashRegister,
     openCashRegister,
     closeCashRegister,
-    currentUser
+    currentUser,
+    lastTransaction,
+    setLastTransaction
   } = useStore(s => s);
 
   const [paymentMethod, setPaymentMethod] = useState<'Dinheiro' | 'Cartão' | 'PIX'>('Dinheiro');
@@ -313,14 +348,12 @@ export default function Checkout() {
   const change = useMemo(() => paymentMethod === 'Dinheiro' && amountPaidValue > total ? amountPaidValue - total : 0, [paymentMethod, amountPaidValue, total]);
 
   const handleFinalizeSale = (pixData?: string) => {
-    finalizeSale(paymentMethod, total);
-    setDiscount(0);
-    setAddition(0);
-    setAmountPaid('');
-    toast({
-        title: "Venda Finalizada!",
-        description: `Venda no valor de R$ ${total.toFixed(2)} finalizada com sucesso. ${pixData ? `PIX: ${pixData}` : ''}`,
-    });
+    const transaction = finalizeSale(paymentMethod, total);
+    if(transaction) {
+        setDiscount(0);
+        setAddition(0);
+        setAmountPaid('');
+    }
   }
   
   const totalItems = useMemo(() => cart.length, [cart]);
@@ -366,6 +399,14 @@ export default function Checkout() {
     }
 
   return (
+    <>
+    {lastTransaction && (
+        <SaleSuccessDialog 
+            transaction={lastTransaction} 
+            open={!!lastTransaction} 
+            onOpenChange={() => setLastTransaction(null)} 
+        />
+    )}
     <div className="grid h-full max-h-[calc(100vh-4rem)] grid-cols-1 gap-8 lg:grid-cols-5">
       {/* Product Selection & Cart */}
       <div className="lg:col-span-3">
@@ -559,7 +600,6 @@ export default function Checkout() {
         </Card>
       </div>
     </div>
+    </>
   );
 }
-
-  
