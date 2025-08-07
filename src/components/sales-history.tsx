@@ -28,11 +28,11 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import type { Product, CartItem } from '@/lib/types';
-
+import { formatDistanceStrict } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export default function SalesHistory() {
-  const { transactions } = useStore();
+  const { transactions, cashRegisterHistory } = useStore();
   const [dateFilter, setDateFilter] = useState('');
   const [paymentFilter, setPaymentFilter] = useState('all');
   const [operatorFilter, setOperatorFilter] = useState('');
@@ -66,6 +66,31 @@ export default function SalesHistory() {
     });
     return Object.values(summary).sort((a, b) => b.quantity - a.quantity);
   }, [filteredTransactions]);
+
+  const operatorTimeSummary = useMemo(() => {
+    const summary: { [key: string]: { name: string, totalMilliseconds: number } } = {};
+    cashRegisterHistory
+        .filter(session => session.status === 'fechado' && session.closingTime)
+        .forEach(session => {
+            const openingTime = new Date(session.openingTime);
+            const closingTime = new Date(session.closingTime!);
+            const durationMs = closingTime.getTime() - openingTime.getTime();
+
+            if (summary[session.operatorId]) {
+                summary[session.operatorId].totalMilliseconds += durationMs;
+            } else {
+                summary[session.operatorId] = {
+                    name: session.operatorName,
+                    totalMilliseconds: durationMs,
+                }
+            }
+        });
+    
+    return Object.values(summary).map(s => ({
+        ...s,
+        formattedTime: formatDistanceStrict(0, s.totalMilliseconds, { unit: 'minute', locale: ptBR })
+    })).sort((a, b) => b.totalMilliseconds - a.totalMilliseconds);
+  }, [cashRegisterHistory]);
 
 
   return (
@@ -159,7 +184,7 @@ export default function SalesHistory() {
                 </CardContent>
             </Card>
         </div>
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 space-y-8">
             <Card className="bg-yellow-100 text-black font-mono">
                 <CardHeader>
                     <CardTitle className="text-black">Resumo de Produtos</CardTitle>
@@ -187,6 +212,40 @@ export default function SalesHistory() {
                                 <TableRow>
                                     <TableCell colSpan={2} className="h-24 text-center">
                                         Nenhum produto vendido no período.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+             <Card className="bg-yellow-100 text-black font-mono">
+                <CardHeader>
+                    <CardTitle className="text-black">Tempo de Caixa por Operador</CardTitle>
+                    <CardDescription className="text-black/80">
+                        Tempo total de caixa aberto por operador.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow className="border-dashed border-black/20 hover:bg-black/5">
+                                <TableHead className="text-black">Operador</TableHead>
+                                <TableHead className="text-right text-black">Tempo Total</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {operatorTimeSummary.length > 0 ? (
+                                operatorTimeSummary.map(op => (
+                                    <TableRow key={op.name} className="border-dashed border-black/20 hover:bg-black/5">
+                                        <TableCell className="font-medium">{op.name}</TableCell>
+                                        <TableCell className="text-right font-bold">{op.formattedTime}</TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={2} className="h-24 text-center">
+                                        Nenhuma sessão de caixa fechada.
                                     </TableCell>
                                 </TableRow>
                             )}
