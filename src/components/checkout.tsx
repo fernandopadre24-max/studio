@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useStore } from '@/lib/store';
-import type { Product } from '@/lib/types';
+import type { Product, CashRegisterSession } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -11,9 +11,10 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
+  CardDescription
 } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Minus, Plus, Trash2, DollarSign, Search, ShoppingCart } from 'lucide-react';
+import { Minus, Plus, Trash2, DollarSign, Search, ShoppingCart, Lock, Unlock, XCircle } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -32,7 +33,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
 
 function ProductSelector() {
     const { products, addToCart } = useStore();
@@ -53,7 +62,6 @@ function ProductSelector() {
         toast({
             title: "Produto adicionado",
             description: `${product.name} foi adicionado ao carrinho.`,
-            variant: 'default'
         })
     }
     
@@ -95,6 +103,98 @@ function ProductSelector() {
     )
 }
 
+function OpenCashRegisterForm({ onOpen }: { onOpen: (balance: number) => void }) {
+    const [openingBalance, setOpeningBalance] = useState('');
+    const { currentUser } = useStore();
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const balance = parseFloat(openingBalance);
+        if (!isNaN(balance)) {
+            onOpen(balance);
+        }
+    }
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <p>
+                Operador: <span className="font-semibold">{currentUser?.name}</span>
+            </p>
+            <div>
+                <Label htmlFor="openingBalance">Valor de Abertura (R$)</Label>
+                <Input
+                    id="openingBalance"
+                    type="number"
+                    step="0.01"
+                    value={openingBalance}
+                    onChange={(e) => setOpeningBalance(e.target.value)}
+                    required
+                    placeholder="Fundo de troco"
+                />
+            </div>
+            <DialogFooter>
+                <Button type="submit">Abrir Caixa</Button>
+            </DialogFooter>
+        </form>
+    )
+}
+
+function CloseCashRegisterDialog({ session, onClose }: { session: CashRegisterSession, onClose: () => void }) {
+    const salesByPaymentMethod = useMemo(() => {
+        const summary = { 'Dinheiro': 0, 'Cartão': 0, 'PIX': 0 };
+        session.transactions.forEach(tx => {
+            summary[tx.paymentMethod] += tx.total;
+        });
+        return summary;
+    }, [session]);
+
+    const totalSales = salesByPaymentMethod.Dinheiro + salesByPaymentMethod.Cartão + salesByPaymentMethod.PIX;
+    const expectedClosingBalance = session.openingBalance + salesByPaymentMethod.Dinheiro;
+
+    return (
+         <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Fechar o Caixa</DialogTitle>
+                <DialogDescription>
+                    Confira os valores e confirme o fechamento do caixa.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+                <Card>
+                    <CardHeader><CardTitle>Resumo da Sessão</CardTitle></CardHeader>
+                    <CardContent className="space-y-2">
+                        <p>Operador: <span className="font-semibold">{session.operatorName}</span></p>
+                        <p>Abertura: <span className="font-semibold">{new Date(session.openingTime).toLocaleString()}</span></p>
+                        <p>Saldo Inicial: <span className="font-semibold text-blue-600">R$ {session.openingBalance.toFixed(2)}</span></p>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader><CardTitle>Resumo de Vendas</CardTitle></CardHeader>
+                    <CardContent className="space-y-2">
+                        <p>Vendas em Dinheiro: <span className="font-semibold">R$ {salesByPaymentMethod.Dinheiro.toFixed(2)}</span></p>
+                        <p>Vendas em Cartão: <span className="font-semibold">R$ {salesByPaymentMethod.Cartão.toFixed(2)}</span></p>
+                        <p>Vendas em PIX: <span className="font-semibold">R$ {salesByPaymentMethod.PIX.toFixed(2)}</span></p>
+                        <hr/>
+                        <p className="text-lg">Total de Vendas: <span className="font-bold">R$ {totalSales.toFixed(2)}</span></p>
+                    </CardContent>
+                </Card>
+                 <Card className="bg-green-100 dark:bg-green-900">
+                    <CardHeader><CardTitle>Fechamento</CardTitle></CardHeader>
+                    <CardContent>
+                       <p className="text-xl">Valor esperado em caixa: <span className="font-bold text-green-700 dark:text-green-400">R$ {expectedClosingBalance.toFixed(2)}</span></p>
+                        <p className="text-sm text-muted-foreground">(Saldo Inicial + Vendas em Dinheiro)</p>
+                    </CardContent>
+                </Card>
+            </div>
+            <DialogFooter>
+                 <DialogClose asChild>
+                    <Button type="button" variant="secondary">Cancelar</Button>
+                </DialogClose>
+                <Button variant="destructive" onClick={onClose}>Confirmar Fechamento</Button>
+            </DialogFooter>
+        </DialogContent>
+    )
+}
 
 export default function Checkout() {
   const { toast } = useToast();
@@ -104,21 +204,20 @@ export default function Checkout() {
     updateCartItemQuantity,
     clearCart,
     finalizeSale,
-  } = useStore(s => ({
-    cart: s.cart,
-    removeFromCart: s.removeFromCart,
-    updateCartItemQuantity: s.updateCartItemQuantity,
-    clearCart: s.clearCart,
-    finalizeSale: s.finalizeSale,
-  }));
+    currentCashRegister,
+    openCashRegister,
+    closeCashRegister,
+    currentUser
+  } = useStore(s => s);
 
   const [paymentMethod, setPaymentMethod] = useState<'Dinheiro' | 'Cartão' | 'PIX'>('Dinheiro');
   const [amountPaid, setAmountPaid] = useState('');
-
-  const subTotal = useMemo(() => cart.reduce((total, item) => total + item.price * item.quantity, 0), [cart]);
   const [discount, setDiscount] = useState(0);
   const [addition, setAddition] = useState(0);
 
+  const [isCloseDialog, setCloseDialog] = useState(false);
+  
+  const subTotal = useMemo(() => cart.reduce((total, item) => total + item.price * item.quantity, 0), [cart]);
   const total = useMemo(() => subTotal - discount + addition, [subTotal, discount, addition]);
   const amountPaidValue = parseFloat(amountPaid) || 0;
   const change = useMemo(() => paymentMethod === 'Dinheiro' && amountPaidValue > total ? amountPaidValue - total : 0, [paymentMethod, amountPaidValue, total]);
@@ -131,10 +230,9 @@ export default function Checkout() {
     toast({
         title: "Venda Finalizada!",
         description: `Venda no valor de R$ ${total.toFixed(2)} finalizada com sucesso.`,
-        variant: 'default'
     });
   }
-
+  
   const totalItems = useMemo(() => cart.length, [cart]);
   const totalQuantity = useMemo(() => cart.reduce((total, item) => total + item.quantity, 0), [cart]);
   
@@ -143,9 +241,8 @@ export default function Checkout() {
     if (paymentMethod === 'Dinheiro') {
       return amountPaidValue >= total;
     }
-    return true; // For Card and PIX, we assume payment is handled externally
+    return true;
   }, [cart, total, paymentMethod, amountPaidValue]);
-
 
   useEffect(() => {
     if (paymentMethod !== 'Dinheiro') {
@@ -155,6 +252,22 @@ export default function Checkout() {
     }
   }, [paymentMethod, total]);
 
+  if (!currentCashRegister || currentCashRegister.status === 'fechado') {
+        return (
+            <Dialog open={true} onOpenChange={() => {}}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2"><Lock /> Caixa Fechado</DialogTitle>
+                        <DialogDescription>
+                            Para iniciar as vendas, você precisa abrir o caixa.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <OpenCashRegisterForm onOpen={openCashRegister} />
+                </DialogContent>
+            </Dialog>
+        );
+    }
+
   return (
     <div className="grid h-full max-h-[calc(100vh-4rem)] grid-cols-1 gap-8 lg:grid-cols-5">
       {/* Product Selection & Cart */}
@@ -163,14 +276,30 @@ export default function Checkout() {
             <ProductSelector />
             <Card className="h-full flex flex-col bg-yellow-100 text-black font-mono">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-black">
-                    <ShoppingCart />
-                    Cupom Fiscal
+                <CardTitle className="flex items-center justify-between text-black">
+                    <div className="flex items-center gap-2">
+                        <ShoppingCart />
+                        Cupom Fiscal
+                    </div>
+                     <Dialog open={isCloseDialog} onOpenChange={setCloseDialog}>
+                        <Button 
+                            variant="destructive" 
+                            size="sm" 
+                            onClick={() => setCloseDialog(true)}
+                            className="font-sans"
+                            disabled={currentUser?.role !== 'Gerente'}>
+                            <XCircle className="mr-2 h-4 w-4" /> Fechar Caixa
+                        </Button>
+                        {currentCashRegister && <CloseCashRegisterDialog session={currentCashRegister} onClose={() => { closeCashRegister(); setCloseDialog(false); }} />}
+                    </Dialog>
                 </CardTitle>
+                 <CardDescription className="text-black/80 flex items-center gap-2 pt-2">
+                    <Unlock size={16} /> Caixa Aberto por: <span className="font-semibold text-black">{currentCashRegister.operatorName}</span>
+                </CardDescription>
               </CardHeader>
               <CardContent className="flex-1 p-0">
                 <div className="border-t border-b border-dashed border-black/20">
-                  <ScrollArea className="h-[calc(100vh-34rem)]">
+                  <ScrollArea className="h-[calc(100vh-38rem)]">
                     <Table>
                       <TableHeader>
                         <TableRow className="border-dashed border-black/20">

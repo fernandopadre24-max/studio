@@ -18,6 +18,7 @@ export interface Transaction {
   paymentMethod: 'Dinheiro' | 'Cartão' | 'PIX';
   date: string;
   operator: string;
+  cashRegisterSessionId?: string;
 }
 
 export type EmployeeRole = 'Vendedor' | 'Gerente' | 'Estoquista';
@@ -26,4 +27,18 @@ export interface Employee {
   id: string;
   name: string;
   role: EmployeeRole;
+}
+
+export type CashRegisterStatus = 'aberto' | 'fechado';
+
+export interface CashRegisterSession {
+  id: string;
+  openingTime: string;
+  closingTime?: string;
+  openingBalance: number;
+  closingBalance?: number;
+  operatorId: string;
+  operatorName: string;
+  status: CashRegisterStatus;
+  transactions: Transaction[];
 }
