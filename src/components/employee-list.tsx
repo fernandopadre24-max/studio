@@ -123,18 +123,18 @@ export default function EmployeeList() {
   }
 
   return (
-    <Card>
+    <Card className="bg-yellow-100 text-black font-mono">
       <CardHeader>
         <div className="flex items-center justify-between">
             <div>
-                <CardTitle>Gerenciamento de Funcionários</CardTitle>
-                <CardDescription>Adicione, edite ou remova funcionários.</CardDescription>
+                <CardTitle className="text-black">Gerenciamento de Funcionários</CardTitle>
+                <CardDescription className="text-black/80">Adicione, edite ou remova funcionários.</CardDescription>
             </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                    <Button onClick={openDialogForNew}><PlusCircle className="mr-2 h-4 w-4"/>Adicionar Funcionário</Button>
+                    <Button onClick={openDialogForNew} className="font-sans bg-slate-800 text-white hover:bg-slate-700"><PlusCircle className="mr-2 h-4 w-4"/>Adicionar Funcionário</Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="font-sans">
                     <DialogHeader>
                         <DialogTitle>{editingEmployee ? 'Editar Funcionário' : 'Adicionar Novo Funcionário'}</DialogTitle>
                     </DialogHeader>
@@ -150,24 +150,24 @@ export default function EmployeeList() {
       <CardContent>
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Código</TableHead>
-              <TableHead>Nome</TableHead>
-              <TableHead>Cargo</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+            <TableRow className="border-dashed border-black/20">
+              <TableHead className="text-black">Código</TableHead>
+              <TableHead className="text-black">Nome</TableHead>
+              <TableHead className="text-black">Cargo</TableHead>
+              <TableHead className="text-right text-black">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {employees.map((employee) => (
-              <TableRow key={employee.id}>
+              <TableRow key={employee.id} className="border-dashed border-black/20">
                 <TableCell className="font-mono">{employee.cod}</TableCell>
                 <TableCell className="font-medium">{employee.name}</TableCell>
                 <TableCell>{employee.role}</TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" onClick={() => openDialogForEdit(employee)}>
+                  <Button variant="ghost" size="icon" className="text-black hover:bg-black/10" onClick={() => openDialogForEdit(employee)}>
                     <Pen className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => deleteEmployee(employee.id)}>
+                  <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600 hover:bg-black/10" onClick={() => deleteEmployee(employee.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </TableCell>
