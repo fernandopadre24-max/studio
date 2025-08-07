@@ -43,3 +43,16 @@ export interface CashRegisterSession {
   status: CashRegisterStatus;
   transactions: Transaction[];
 }
+
+export interface HSLColor {
+    h: number;
+    s: number;
+    l: number;
+}
+
+export type FontFamily = 'font-inter' | 'font-space-mono' | 'font-roboto-mono' | 'font-inconsolata';
+
+export interface ThemeSettings {
+    primaryColor: HSLColor;
+    fontFamily: FontFamily;
+}

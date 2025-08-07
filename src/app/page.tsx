@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, ShoppingCart, Package, BarChart, Users, LogOut, User } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Package, BarChart, Users, LogOut, User, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -11,9 +11,10 @@ import Checkout from '@/components/checkout';
 import ProductList from '@/components/product-list';
 import SalesHistory from '@/components/sales-history';
 import EmployeeList from '@/components/employee-list';
+import SettingsPage from '@/components/settings';
 import type { Employee } from '@/lib/types';
 
-type NavItem = 'Caixa' | 'Produtos' | 'Relatórios' | 'Funcionários';
+type NavItem = 'Caixa' | 'Produtos' | 'Relatórios' | 'Funcionários' | 'Configurações';
 
 function UserSelectionScreen() {
     const { employees, setCurrentUser } = useStore();
@@ -79,6 +80,8 @@ export default function Home() {
         return <SalesHistory />;
       case 'Funcionários':
         return <EmployeeList />;
+      case 'Configurações':
+        return <SettingsPage />;
       default:
         return null;
     }
@@ -86,6 +89,7 @@ export default function Home() {
   
   const hasCashierAccess = currentUser?.role === 'Vendedor' || currentUser?.role === 'Gerente';
   const hasEmployeeAccess = currentUser?.role === 'Gerente';
+  const hasSettingsAccess = currentUser?.role === 'Gerente';
 
 
   if (!isClient) {
@@ -134,6 +138,13 @@ export default function Home() {
               isActive={activeNav === 'Funcionários'}
               onClick={() => setActiveNav('Funcionários')}
               disabled={!hasEmployeeAccess}
+            />
+            <NavItemButton
+              label="Configurações"
+              icon={Settings}
+              isActive={activeNav === 'Configurações'}
+              onClick={() => setActiveNav('Configurações')}
+              disabled={!hasSettingsAccess}
             />
           </nav>
         </div>

@@ -14,7 +14,10 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
  
-    --primary: 262.1 83.3% 57.8%;
+    --primary-hue: 262;
+    --primary-saturation: 83%;
+    --primary-lightness: 58%;
+    --primary: var(--primary-hue) var(--primary-saturation) var(--primary-lightness);
     --primary-foreground: 210 40% 98%;
  
     --secondary: 210 40% 96.1%;
@@ -31,7 +34,7 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 262.1 83.3% 57.8%;
+    --ring: var(--primary-hue) var(--primary-saturation) var(--primary-lightness);
  
     --radius: 0.5rem;
 
@@ -51,8 +54,11 @@
  
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
- 
-    --primary: 263.4 95.2% 66.1%;
+
+    --primary-hue: 263;
+    --primary-saturation: 95%;
+    --primary-lightness: 66%;
+    --primary: var(--primary-hue) var(--primary-saturation) var(--primary-lightness);
     --primary-foreground: 210 40% 98%;
  
     --secondary: 217.2 32.6% 17.5%;
@@ -69,7 +75,7 @@
  
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 263.4 95.2% 66.1%;
+    --ring: var(--primary-hue) var(--primary-saturation) var(--primary-lightness);
 
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -85,5 +91,19 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-inter), sans-serif;
+  }
+
+  .font-inter {
+    font-family: var(--font-inter), sans-serif;
+  }
+  .font-space-mono {
+    font-family: var(--font-space-mono), monospace;
+  }
+  .font-roboto-mono {
+    font-family: var(--font-roboto-mono), monospace;
+  }
+  .font-inconsolata {
+      font-family: var(--font-inconsolata), monospace;
   }
 }

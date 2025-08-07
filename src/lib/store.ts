@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Product, CartItem, Transaction, Employee, CashRegisterSession, CashRegisterStatus } from '@/lib/types';
+import type { Product, CartItem, Transaction, Employee, CashRegisterSession, ThemeSettings } from '@/lib/types';
 
 interface AppState {
   products: Product[];
@@ -11,6 +11,7 @@ interface AppState {
   currentUser: Employee | null;
   cashRegisterHistory: CashRegisterSession[];
   currentCashRegister: CashRegisterSession | null;
+  theme: ThemeSettings,
   addProduct: (product: Omit<Product, 'id'>) => void;
   updateProduct: (product: Product) => void;
   deleteProduct: (productId: string) => void;
@@ -25,7 +26,13 @@ interface AppState {
   setCurrentUser: (employee: Employee | null) => void;
   openCashRegister: (openingBalance: number) => void;
   closeCashRegister: () => void;
+  setTheme: (theme: Partial<ThemeSettings>) => void;
 }
+
+const defaultTheme: ThemeSettings = {
+    primaryColor: { h: 262, s: 83, l: 58 }, // Default HSL for primary color
+    fontFamily: 'font-inter', // Default font
+};
 
 export const useStore = create<AppState>()(
   persist(
@@ -45,6 +52,7 @@ export const useStore = create<AppState>()(
       currentUser: null,
       cashRegisterHistory: [],
       currentCashRegister: null,
+      theme: defaultTheme,
 
       addProduct: (productData) => {
         const newProduct: Product = { ...productData, id: new Date().toISOString() };
@@ -203,6 +211,11 @@ export const useStore = create<AppState>()(
         set(state => ({
             cashRegisterHistory: [closedSession, ...state.cashRegisterHistory],
             currentCashRegister: null,
+        }))
+      },
+      setTheme: (newTheme) => {
+        set((state) => ({
+            theme: { ...state.theme, ...newTheme }
         }))
       }
     }),
