@@ -82,9 +82,9 @@ export default function SalesHistory() {
                 <TableHeader>
                     <TableRow className="border-dashed border-black/20 hover:bg-black/5">
                     <TableHead className="w-12 text-black"></TableHead>
-                    <TableHead className="text-black">Data</TableHead>
-                    <TableHead className="text-black">Hora</TableHead>
-                    <TableHead className="text-black">Pagamento</TableHead>
+                    <TableHead className="text-center text-black">Data</TableHead>
+                    <TableHead className="text-center text-black">Hora</TableHead>
+                    <TableHead className="text-center text-black">Pagamento</TableHead>
                     <TableHead className="text-right text-black">Total</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -101,11 +101,11 @@ export default function SalesHistory() {
                                             <span className="sr-only">Ver detalhes</span>
                                         </AccordionTrigger>
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className="text-center">
                                         <div className="font-medium">{txDate.toLocaleDateString()}</div>
                                     </TableCell>
-                                    <TableCell>{txDate.toLocaleTimeString()}</TableCell>
-                                    <TableCell>
+                                    <TableCell className="text-center">{txDate.toLocaleTimeString()}</TableCell>
+                                    <TableCell className="text-center">
                                         <Badge variant="outline" className="border-black/50">{tx.paymentMethod}</Badge>
                                     </TableCell>
                                     <TableCell className="text-right font-bold">R$ {tx.total.toFixed(2)}</TableCell>
