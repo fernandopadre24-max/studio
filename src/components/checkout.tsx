@@ -196,7 +196,7 @@ function OpenCashRegisterForm({ onOpen }: { onOpen: (balance: number) => void })
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             <p>
-                Operador: <span className="font-semibold">{currentUser?.name}</span>
+                Operador: <span className="font-semibold">{currentUser?.name.split(' ')[0]}</span>
             </p>
             <div>
                 <Label htmlFor="openingBalance">Valor de Abertura (R$)</Label>
@@ -241,7 +241,7 @@ function CloseCashRegisterDialog({ session, onClose }: { session: CashRegisterSe
                 <Card>
                     <CardHeader><CardTitle>Resumo da Sessão</CardTitle></CardHeader>
                     <CardContent className="space-y-2">
-                        <p>Operador: <span className="font-semibold">{session.operatorName}</span></p>
+                        <p>Operador: <span className="font-semibold">{session.operatorName.split(' ')[0]}</span></p>
                         <p>Abertura: <span className="font-semibold">{new Date(session.openingTime).toLocaleString()}</span></p>
                         <p>Saldo Inicial: <span className="font-semibold text-blue-600">R$ {session.openingBalance.toFixed(2)}</span></p>
                     </CardContent>
@@ -392,7 +392,7 @@ export default function Checkout() {
                     </Dialog>
                 </CardTitle>
                  <CardDescription className="text-black/80 flex items-center gap-2 pt-2">
-                    <Unlock size={16} /> Caixa Aberto por: <span className="font-semibold text-black">{currentCashRegister.operatorName}</span>
+                    <Unlock size={16} /> Caixa Aberto por: <span className="font-semibold text-black">{currentCashRegister.operatorName.split(' ')[0]}</span>
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex-1 p-0">
@@ -561,3 +561,5 @@ export default function Checkout() {
     </div>
   );
 }
+
+  
