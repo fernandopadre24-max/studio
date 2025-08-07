@@ -44,8 +44,7 @@ export default function SalesHistory() {
         const dateMatch = !dateFilter || txDate.toISOString().split('T')[0] === dateFilter;
         const paymentMatch = paymentFilter === 'all' || tx.paymentMethod === paymentFilter;
         const operatorMatch = !operatorFilter || 
-                              tx.operator.toLowerCase().includes(lowerCaseOperatorFilter) ||
-                              (tx.operatorCod && tx.operatorCod.toLowerCase().includes(lowerCaseOperatorFilter));
+                              tx.operator.toLowerCase().includes(lowerCaseOperatorFilter);
         return dateMatch && paymentMatch && operatorMatch;
     }).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transactions, dateFilter, paymentFilter, operatorFilter]);
@@ -100,7 +99,7 @@ export default function SalesHistory() {
                     </Select>
                     <Input
                         type="text"
-                        placeholder="Filtrar por operador..."
+                        placeholder="Filtrar por nome do operador..."
                         value={operatorFilter}
                         onChange={(e) => setOperatorFilter(e.target.value)}
                         className="max-w-sm bg-white/60 border-black/20 focus:bg-white"
