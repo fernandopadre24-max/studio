@@ -39,8 +39,66 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Pen, Trash2, PlusCircle, User, FileText, Briefcase } from 'lucide-react';
+import { Pen, Trash2, PlusCircle, User, FileText, Briefcase, Eye } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
+
+const EmployeeDetails = ({ employee }: { employee: Employee }) => {
+    return (
+        <ScrollArea className="h-[60vh]">
+            <div className="space-y-6 p-4 font-sans">
+                 <div className="space-y-4">
+                    <h3 className="text-lg font-medium flex items-center gap-2"><Briefcase size={20} /> Informações do Cargo</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <Label>Código do Funcionário</Label>
+                            <p className="font-semibold">{employee.cod}</p>
+                        </div>
+                        <div>
+                            <Label>Cargo</Label>
+                            <p className="font-semibold">{employee.role}</p>
+                        </div>
+                         <div>
+                            <Label>Data de Admissão</Label>
+                            <p className="font-semibold">{employee.admissionDate ? new Date(employee.admissionDate).toLocaleDateString('pt-BR', {timeZone: 'UTC'}) : 'N/A'}</p>
+                        </div>
+                         <div>
+                            <Label>Salário (R$)</Label>
+                            <p className="font-semibold">R$ {employee.salary?.toFixed(2) || 'N/A'}</p>
+                        </div>
+                    </div>
+                </div>
+                 <div className="space-y-4">
+                    <h3 className="text-lg font-medium flex items-center gap-2"><User size={20} /> Informações Pessoais</h3>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <Label>Nome Completo</Label>
+                            <p className="font-semibold">{employee.name}</p>
+                        </div>
+                        <div>
+                            <Label>CPF</Label>
+                            <p className="font-semibold">{employee.cpf || 'N/A'}</p>
+                        </div>
+                         <div>
+                            <Label>RG</Label>
+                            <p className="font-semibold">{employee.rg || 'N/A'}</p>
+                        </div>
+                         <div>
+                            <Label>Telefone / Celular</Label>
+                            <p className="font-semibold">{employee.phone || 'N/A'}</p>
+                        </div>
+                     </div>
+                </div>
+                <div className="space-y-4">
+                    <h3 className="text-lg font-medium flex items-center gap-2"><FileText size={20} /> Endereço</h3>
+                    <div>
+                        <Label>Endereço Completo</Label>
+                        <p className="font-semibold">{employee.address || 'N/A'}</p>
+                    </div>
+                </div>
+            </div>
+        </ScrollArea>
+    )
+}
 
 const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null, onSave: (e: any) => void, onDone: () => void }) => {
     const [name, setName] = useState(employee?.name || '');
@@ -150,26 +208,33 @@ const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null
 
 export default function EmployeeList() {
   const { employees, addEmployee, updateEmployee, deleteEmployee } = useStore();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
 
-  const handleSave = (employeeData: Omit<Employee, 'id'>) => {
-    if (editingEmployee) {
-      updateEmployee({ ...editingEmployee, ...employeeData });
+  const handleSave = (employeeData: Omit<Employee, 'id'> & { id?: string }) => {
+    if (employeeData.id) {
+      updateEmployee(employeeData as Employee);
     } else {
       addEmployee(employeeData);
     }
   };
   
   const openDialogForEdit = (employee: Employee) => {
-    setEditingEmployee(employee);
-    setIsDialogOpen(true);
+    setSelectedEmployee(employee);
+    setIsFormOpen(true);
   }
 
   const openDialogForNew = () => {
-    setEditingEmployee(null);
-    setIsDialogOpen(true);
+    setSelectedEmployee(null);
+    setIsFormOpen(true);
   }
+
+  const openDialogForView = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setIsViewOpen(true);
+  }
+
 
   return (
     <Card className="bg-yellow-100 text-black font-mono">
@@ -177,23 +242,9 @@ export default function EmployeeList() {
         <div className="flex items-center justify-between">
             <div>
                 <CardTitle className="text-black">Gerenciamento de Funcionários</CardTitle>
-                <CardDescription className="text-black/80">Adicione, edite ou remova funcionários.</CardDescription>
+                <CardDescription className="text-black/80">Adicione, edite ou remova funcionários. Dê um duplo clique para ver os detalhes.</CardDescription>
             </div>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                    <Button onClick={openDialogForNew} className="font-sans bg-slate-800 text-white hover:bg-slate-700"><PlusCircle className="mr-2 h-4 w-4"/>Adicionar Funcionário</Button>
-                </DialogTrigger>
-                <DialogContent className="font-sans sm:max-w-[800px]">
-                    <DialogHeader>
-                        <DialogTitle>{editingEmployee ? 'Editar Funcionário' : 'Adicionar Novo Funcionário'}</DialogTitle>
-                    </DialogHeader>
-                    <EmployeeForm
-                        employee={editingEmployee}
-                        onSave={handleSave}
-                        onDone={() => setIsDialogOpen(false)}
-                    />
-                </DialogContent>
-            </Dialog>
+            <Button onClick={openDialogForNew} className="font-sans bg-slate-800 text-white hover:bg-slate-700"><PlusCircle className="mr-2 h-4 w-4"/>Adicionar Funcionário</Button>
         </div>
       </CardHeader>
       <CardContent>
@@ -208,7 +259,7 @@ export default function EmployeeList() {
           </TableHeader>
           <TableBody>
             {employees.map((employee) => (
-              <TableRow key={employee.id} className="border-dashed border-black/20">
+              <TableRow key={employee.id} onDoubleClick={() => openDialogForView(employee)} className="border-dashed border-black/20 cursor-pointer">
                 <TableCell className="font-mono">{employee.cod}</TableCell>
                 <TableCell className="font-medium">{employee.name}</TableCell>
                 <TableCell>{employee.role}</TableCell>
@@ -225,6 +276,34 @@ export default function EmployeeList() {
           </TableBody>
         </Table>
       </CardContent>
+
+       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+            <DialogContent className="font-sans sm:max-w-[800px]">
+                <DialogHeader>
+                    <DialogTitle>{selectedEmployee ? 'Editar Funcionário' : 'Adicionar Novo Funcionário'}</DialogTitle>
+                </DialogHeader>
+                <EmployeeForm
+                    employee={selectedEmployee}
+                    onSave={handleSave}
+                    onDone={() => setIsFormOpen(false)}
+                />
+            </DialogContent>
+        </Dialog>
+        
+        <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
+            <DialogContent className="font-sans sm:max-w-[800px]">
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2"><Eye /> Detalhes do Funcionário</DialogTitle>
+                </DialogHeader>
+                {selectedEmployee && <EmployeeDetails employee={selectedEmployee} />}
+                 <DialogFooter>
+                    <Button variant="secondary" onClick={() => setIsViewOpen(false)}>Fechar</Button>
+                    <Button onClick={() => { setIsViewOpen(false); if(selectedEmployee) openDialogForEdit(selectedEmployee)}}>Editar</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
     </Card>
   );
 }
+
