@@ -125,8 +125,7 @@ export default function SalesHistory() {
                                     filteredTransactions.map(tx => {
                                         const txDate = new Date(tx.date);
                                         return (
-                                            <AccordionItem value={tx.id} key={tx.id} asChild>
-                                                <>
+                                            <AccordionItem value={tx.id} key={tx.id}>
                                                 <TableRow className="border-b-0 border-dashed border-black/20 hover:bg-black/5 data-[state=open]:bg-black/10">
                                                     <TableCell className="p-0 pl-4">
                                                         <AccordionTrigger className="py-4 hover:no-underline [&[data-state=open]>svg]:text-black justify-center" />
@@ -157,7 +156,6 @@ export default function SalesHistory() {
                                                         </AccordionContent>
                                                     </TableCell>
                                                 </TableRow>
-                                                </>
                                             </AccordionItem>
                                         )
                                     })
