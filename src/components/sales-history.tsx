@@ -44,7 +44,7 @@ export default function SalesHistory() {
         const dateMatch = !dateFilter || txDate.toISOString().split('T')[0] === dateFilter;
         const paymentMatch = paymentFilter === 'all' || tx.paymentMethod === paymentFilter;
         const operatorMatch = !operatorFilter || 
-                              tx.operator.toLowerCase().includes(lowerCaseOperatorFilter);
+                              (tx.operator && tx.operator.toLowerCase().includes(lowerCaseOperatorFilter));
         return dateMatch && paymentMatch && operatorMatch;
     }).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transactions, dateFilter, paymentFilter, operatorFilter]);
