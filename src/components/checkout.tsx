@@ -14,7 +14,7 @@ import {
   CardDescription
 } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Minus, Plus, Trash2, DollarSign, Search, ShoppingCart, Lock, Unlock, XCircle } from 'lucide-react';
+import { Minus, Plus, Trash2, DollarSign, Search, ShoppingCart, Lock, Unlock, XCircle, QrCode, Camera } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -41,12 +41,15 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
+  DialogTrigger,
 } from '@/components/ui/dialog';
+import CameraScanner from './camera-scanner';
 
 function ProductSelector() {
-    const { products, addToCart } = useStore();
+    const { products, addToCart, findProductByCode } = useStore();
     const { toast } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
+    const [isScannerOpen, setScannerOpen] = useState(false);
 
     const filteredProducts = useMemo(() => {
         if (!searchTerm) return products;
@@ -65,17 +68,49 @@ function ProductSelector() {
         })
     }
     
+    const handleScan = (code: string | null) => {
+        if (code) {
+            setScannerOpen(false);
+            const product = findProductByCode(code);
+            if (product) {
+                handleAddToCart(product);
+            } else {
+                toast({
+                    variant: "destructive",
+                    title: "Produto não encontrado",
+                    description: `Nenhum produto encontrado com o código ${code}.`,
+                });
+            }
+        }
+    };
+
     return (
         <div className='flex flex-col gap-4'>
-            <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                    type="search"
-                    placeholder="Buscar por nome ou código..."
-                    className="pl-8 sm:w-full"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
+            <div className="flex gap-2">
+                 <div className="relative flex-1">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        type="search"
+                        placeholder="Buscar por nome ou código..."
+                        className="pl-8 sm:w-full"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                 <Dialog open={isScannerOpen} onOpenChange={setScannerOpen}>
+                    <DialogTrigger asChild>
+                        <Button variant="outline" size="icon" className="h-10 w-10">
+                            <Camera className="h-5 w-5" />
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Escanear Código de Barras</DialogTitle>
+                            <DialogDescription>Aponte a câmera para o código de barras do produto.</DialogDescription>
+                        </DialogHeader>
+                        <CameraScanner onScan={handleScan} />
+                    </DialogContent>
+                </Dialog>
             </div>
             <div className='border rounded-md'>
                 <ScrollArea className="h-[200px]">
@@ -196,6 +231,18 @@ function CloseCashRegisterDialog({ session, onClose }: { session: CashRegisterSe
     )
 }
 
+function PixScannerDialog({ onScan }: { onScan: (data: string | null) => void }) {
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Escanear QR Code PIX</DialogTitle>
+                <DialogDescription>Aponte a câmera para o QR Code do cliente.</DialogDescription>
+            </DialogHeader>
+            <CameraScanner onScan={onScan} />
+        </DialogContent>
+    )
+}
+
 export default function Checkout() {
   const { toast } = useToast();
   const {
@@ -214,7 +261,7 @@ export default function Checkout() {
   const [amountPaid, setAmountPaid] = useState('');
   const [discount, setDiscount] = useState(0);
   const [addition, setAddition] = useState(0);
-
+  const [isPixScannerOpen, setPixScannerOpen] = useState(false);
   const [isCloseDialog, setCloseDialog] = useState(false);
   
   const subTotal = useMemo(() => cart.reduce((total, item) => total + item.price * item.quantity, 0), [cart]);
@@ -222,14 +269,14 @@ export default function Checkout() {
   const amountPaidValue = parseFloat(amountPaid) || 0;
   const change = useMemo(() => paymentMethod === 'Dinheiro' && amountPaidValue > total ? amountPaidValue - total : 0, [paymentMethod, amountPaidValue, total]);
 
-  const handleFinalizeSale = () => {
+  const handleFinalizeSale = (pixData?: string) => {
     finalizeSale(paymentMethod, total);
     setDiscount(0);
     setAddition(0);
     setAmountPaid('');
     toast({
         title: "Venda Finalizada!",
-        description: `Venda no valor de R$ ${total.toFixed(2)} finalizada com sucesso.`,
+        description: `Venda no valor de R$ ${total.toFixed(2)} finalizada com sucesso. ${pixData ? `PIX: ${pixData}` : ''}`,
     });
   }
   
@@ -251,6 +298,13 @@ export default function Checkout() {
       setAmountPaid('');
     }
   }, [paymentMethod, total]);
+
+  const handlePixScan = (data: string | null) => {
+    setPixScannerOpen(false);
+    if (data) {
+        handleFinalizeSale(data);
+    }
+  }
 
   if (!currentCashRegister || currentCashRegister.status === 'fechado') {
         return (
@@ -282,14 +336,15 @@ export default function Checkout() {
                         Cupom Fiscal
                     </div>
                      <Dialog open={isCloseDialog} onOpenChange={setCloseDialog}>
-                        <Button 
-                            variant="destructive" 
-                            size="sm" 
-                            onClick={() => setCloseDialog(true)}
-                            className="font-sans"
-                            disabled={currentUser?.role !== 'Gerente' && currentUser?.role !== 'Vendedor'}>
-                            <XCircle className="mr-2 h-4 w-4" /> Fechar Caixa
-                        </Button>
+                        <DialogTrigger asChild>
+                            <Button 
+                                variant="destructive" 
+                                size="sm" 
+                                className="font-sans"
+                                disabled={(currentUser?.role !== 'Gerente' && currentUser?.role !== 'Vendedor') || cart.length > 0}>
+                                <XCircle className="mr-2 h-4 w-4" /> Fechar Caixa
+                            </Button>
+                        </DialogTrigger>
                         {currentCashRegister && <CloseCashRegisterDialog session={currentCashRegister} onClose={() => { closeCashRegister(); setCloseDialog(false); }} />}
                     </Dialog>
                 </CardTitle>
@@ -422,21 +477,33 @@ export default function Checkout() {
 
               <div>
                 <Label className="text-slate-400">Forma de Pagamento</Label>
-                <Select onValueChange={(value: 'Dinheiro' | 'Cartão' | 'PIX') => setPaymentMethod(value)} defaultValue={paymentMethod}>
-                    <SelectTrigger className="bg-slate-900 border-slate-700">
-                        <SelectValue placeholder="Forma de Pagamento" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="Dinheiro">Dinheiro</SelectItem>
-                        <SelectItem value="Cartão">Cartão</SelectItem>
-                        <SelectItem value="PIX">PIX</SelectItem>
-                    </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                    <Select onValueChange={(value: 'Dinheiro' | 'Cartão' | 'PIX') => setPaymentMethod(value)} defaultValue={paymentMethod}>
+                        <SelectTrigger className="bg-slate-900 border-slate-700 flex-1">
+                            <SelectValue placeholder="Forma de Pagamento" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                            <SelectItem value="Cartão">Cartão</SelectItem>
+                            <SelectItem value="PIX">PIX</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    {paymentMethod === 'PIX' && (
+                        <Dialog open={isPixScannerOpen} onOpenChange={setPixScannerOpen}>
+                            <DialogTrigger asChild>
+                                 <Button variant="outline" className="bg-slate-900 border-slate-700 hover:bg-slate-800">
+                                    <QrCode className="mr-2 h-4 w-4" /> Escanear QR Code
+                                </Button>
+                            </DialogTrigger>
+                            <PixScannerDialog onScan={handlePixScan} />
+                        </Dialog>
+                    )}
+                </div>
               </div>
 
           </CardContent>
           <CardFooter className="!p-4">
-                <Button size="lg" disabled={!canFinalize} onClick={handleFinalizeSale} className="w-full h-16 text-xl bg-green-600 hover:bg-green-700">
+                <Button size="lg" disabled={!canFinalize} onClick={() => handleFinalizeSale()} className="w-full h-16 text-xl bg-green-600 hover:bg-green-700">
                     Finalizar Venda
                 </Button>
           </CardFooter>

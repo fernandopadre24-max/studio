@@ -27,6 +27,7 @@ interface AppState {
   openCashRegister: (openingBalance: number) => void;
   closeCashRegister: () => void;
   setTheme: (theme: Partial<ThemeSettings>) => void;
+  findProductByCode: (code: string) => Product | undefined;
 }
 
 const defaultTheme: ThemeSettings = {
@@ -38,9 +39,9 @@ export const useStore = create<AppState>()(
   persist(
     (set, get) => ({
       products: [
-        { id: '1', cod: 'CAF-EXP', name: 'Café Expresso', price: 5.0, stock: 100 },
-        { id: '2', cod: 'PAO-QJO', name: 'Pão de Queijo', price: 3.5, stock: 50 },
-        { id: '3', cod: 'BOL-FBA', name: 'Bolo de Fubá', price: 7.0, stock: 30 },
+        { id: '1', cod: '7891000315507', name: 'Café Expresso', price: 5.0, stock: 100 },
+        { id: '2', cod: '7891000051019', name: 'Pão de Queijo', price: 3.5, stock: 50 },
+        { id: '3', cod: '7896024921028', name: 'Bolo de Fubá', price: 7.0, stock: 30 },
       ],
       cart: [],
       transactions: [],
@@ -53,6 +54,10 @@ export const useStore = create<AppState>()(
       cashRegisterHistory: [],
       currentCashRegister: null,
       theme: defaultTheme,
+
+      findProductByCode: (code) => {
+        return get().products.find(p => p.cod === code);
+      },
 
       addProduct: (productData) => {
         const newProduct: Product = { ...productData, id: new Date().toISOString() };
@@ -79,17 +84,13 @@ export const useStore = create<AppState>()(
         const existingItem = cart.find((item) => item.id === product.id);
 
         if (existingItem) {
-          const quantityDiff = 1;
-          if (productInStock.stock < quantityDiff) return; // Not enough stock
-
+          if (existingItem.quantity >= productInStock.stock) return; // Prevent adding more than in stock
           const newCart = cart.map((item) =>
             item.id === product.id
               ? { ...item, quantity: item.quantity + 1 }
               : item
           );
-           set((state) => ({ 
-                cart: newCart, 
-            }));
+           set({ cart: newCart });
 
         } else {
           set((state) => ({ cart: [...state.cart, { ...product, quantity: 1 }] }));
