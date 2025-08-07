@@ -17,9 +17,10 @@ export interface Transaction {
   total: number;
   paymentMethod: 'Dinheiro' | 'Cartão' | 'PIX';
   date: string;
+  operator: string;
 }
 
-export type EmployeeRole = 'Vendedor' | 'Gerente';
+export type EmployeeRole = 'Vendedor' | 'Gerente' | 'Estoquista';
 
 export interface Employee {
   id: string;

@@ -103,6 +103,7 @@ export default function SalesHistory() {
                                     <TableHead className="w-12 text-black"></TableHead>
                                     <TableHead className="text-center text-black">Data</TableHead>
                                     <TableHead className="text-center text-black">Hora</TableHead>
+                                    <TableHead className="text-center text-black">Operador</TableHead>
                                     <TableHead className="text-center text-black">Pagamento</TableHead>
                                     <TableHead className="text-right text-black">Total</TableHead>
                                     </TableRow>
@@ -122,13 +123,14 @@ export default function SalesHistory() {
                                                         {txDate.toLocaleDateString()}
                                                     </TableCell>
                                                     <TableCell className="text-center">{txDate.toLocaleTimeString()}</TableCell>
+                                                    <TableCell className="text-center">{tx.operator}</TableCell>
                                                     <TableCell className="text-center">
                                                         <Badge variant="outline" className="border-black/50">{tx.paymentMethod}</Badge>
                                                     </TableCell>
                                                     <TableCell className="text-right font-bold">R$ {tx.total.toFixed(2)}</TableCell>
                                                 </TableRow>
                                                 <TableRow className="hover:bg-black/5 border-dashed border-black/20">
-                                                    <TableCell colSpan={5} className="p-0">
+                                                    <TableCell colSpan={6} className="p-0">
                                                         <AccordionContent>
                                                                 <div className="p-4 bg-black/5">
                                                                     <h4 className="font-semibold mb-2">Itens da Venda:</h4>
@@ -149,7 +151,7 @@ export default function SalesHistory() {
                                     })
                                 ) : (
                                     <TableRow className="hover:bg-black/5">
-                                    <TableCell colSpan={5} className="h-24 text-center">
+                                    <TableCell colSpan={6} className="h-24 text-center">
                                         Nenhuma venda encontrada.
                                     </TableCell>
                                     </TableRow>
@@ -200,4 +202,3 @@ export default function SalesHistory() {
     </div>
   );
 }
-

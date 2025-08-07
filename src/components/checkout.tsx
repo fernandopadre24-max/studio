@@ -31,10 +31,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useToast } from '@/hooks/use-toast';
 
 
 function ProductSelector() {
     const { products, addToCart } = useStore();
+    const { toast } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredProducts = useMemo(() => {
@@ -48,6 +50,11 @@ function ProductSelector() {
 
     const handleAddToCart = (product: Product) => {
         addToCart(product);
+        toast({
+            title: "Produto adicionado",
+            description: `${product.name} foi adicionado ao carrinho.`,
+            variant: 'default'
+        })
     }
     
     return (
@@ -90,6 +97,7 @@ function ProductSelector() {
 
 
 export default function Checkout() {
+  const { toast } = useToast();
   const {
     cart,
     removeFromCart,
@@ -113,17 +121,39 @@ export default function Checkout() {
 
   const total = useMemo(() => subTotal - discount + addition, [subTotal, discount, addition]);
   const amountPaidValue = parseFloat(amountPaid) || 0;
-  const change = useMemo(() => amountPaidValue > total ? amountPaidValue - total : 0, [amountPaidValue, total]);
+  const change = useMemo(() => paymentMethod === 'Dinheiro' && amountPaidValue > total ? amountPaidValue - total : 0, [paymentMethod, amountPaidValue, total]);
 
   const handleFinalizeSale = () => {
     finalizeSale(paymentMethod, total);
     setDiscount(0);
     setAddition(0);
     setAmountPaid('');
+    toast({
+        title: "Venda Finalizada!",
+        description: `Venda no valor de R$ ${total.toFixed(2)} finalizada com sucesso.`,
+        variant: 'default'
+    });
   }
 
   const totalItems = useMemo(() => cart.length, [cart]);
   const totalQuantity = useMemo(() => cart.reduce((total, item) => total + item.quantity, 0), [cart]);
+  
+  const canFinalize = useMemo(() => {
+    if (cart.length === 0 || total <= 0) return false;
+    if (paymentMethod === 'Dinheiro') {
+      return amountPaidValue >= total;
+    }
+    return true; // For Card and PIX, we assume payment is handled externally
+  }, [cart, total, paymentMethod, amountPaidValue]);
+
+
+  useEffect(() => {
+    if (paymentMethod !== 'Dinheiro') {
+      setAmountPaid(total.toFixed(2));
+    } else {
+      setAmountPaid('');
+    }
+  }, [paymentMethod, total]);
 
   return (
     <div className="grid h-full max-h-[calc(100vh-4rem)] grid-cols-1 gap-8 lg:grid-cols-5">
@@ -246,14 +276,14 @@ export default function Checkout() {
               </div>
 
                <div className="bg-red-700 p-3 rounded-md text-white">
-                    <Label className="text-red-200 text-xs">SALDO</Label>
-                    <p className="text-2xl font-bold">R$ {(total - amountPaidValue > 0 ? total - amountPaidValue : 0).toFixed(2)}</p>
+                    <Label className="text-red-200 text-xs">A PAGAR</Label>
+                    <p className="text-2xl font-bold">R$ {(total - (paymentMethod === 'Dinheiro' ? amountPaidValue : total) > 0 ? total - (paymentMethod === 'Dinheiro' ? amountPaidValue : total) : 0).toFixed(2)}</p>
                 </div>
                 
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-slate-700 p-3 rounded-md">
                     <Label className="text-slate-400 text-xs">VALOR RECEBIDO</Label>
-                    <Input type="number" value={amountPaid} onChange={(e) => setAmountPaid(e.target.value)} placeholder="0.00" className="bg-slate-900 border-slate-700 text-2xl font-bold p-0 border-0 h-auto" />
+                    <Input type="number" value={amountPaid} onChange={(e) => setAmountPaid(e.target.value)} placeholder="0.00" className="bg-slate-900 border-slate-700 text-2xl font-bold p-0 border-0 h-auto" disabled={paymentMethod !== 'Dinheiro'} />
                 </div>
                  <div className="bg-slate-700 p-3 rounded-md">
                     <Label className="text-slate-400 text-xs">TROCO</Label>
@@ -277,7 +307,7 @@ export default function Checkout() {
 
           </CardContent>
           <CardFooter className="!p-4">
-                <Button size="lg" disabled={cart.length === 0 || total <= 0 || amountPaidValue < total} onClick={handleFinalizeSale} className="w-full h-16 text-xl bg-green-600 hover:bg-green-700">
+                <Button size="lg" disabled={!canFinalize} onClick={handleFinalizeSale} className="w-full h-16 text-xl bg-green-600 hover:bg-green-700">
                     Finalizar Venda
                 </Button>
           </CardFooter>
@@ -286,6 +316,3 @@ export default function Checkout() {
     </div>
   );
 }
-
-
-    

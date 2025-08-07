@@ -66,6 +66,7 @@ const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null
                     <SelectContent>
                         <SelectItem value="Vendedor">Vendedor</SelectItem>
                         <SelectItem value="Gerente">Gerente</SelectItem>
+                        <SelectItem value="Estoquista">Estoquista</SelectItem>
                     </SelectContent>
                 </Select>
             </div>

@@ -8,6 +8,7 @@ interface AppState {
   cart: CartItem[];
   transactions: Transaction[];
   employees: Employee[];
+  currentUser: Employee | null;
   addProduct: (product: Omit<Product, 'id'>) => void;
   updateProduct: (product: Product) => void;
   deleteProduct: (productId: string) => void;
@@ -19,6 +20,7 @@ interface AppState {
   addEmployee: (employee: Omit<Employee, 'id'>) => void;
   updateEmployee: (employee: Employee) => void;
   deleteEmployee: (employeeId: string) => void;
+  setCurrentUser: (employee: Employee | null) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -34,7 +36,9 @@ export const useStore = create<AppState>()(
       employees: [
         { id: '1', name: 'Alice', role: 'Gerente' },
         { id: '2', name: 'Beto', role: 'Vendedor' },
+        { id: '3', name: 'Carlos', role: 'Estoquista' },
       ],
+      currentUser: null,
 
       addProduct: (productData) => {
         const newProduct: Product = { ...productData, id: new Date().toISOString() };
@@ -92,7 +96,8 @@ export const useStore = create<AppState>()(
          if (!itemToUpdate) return;
  
          const productInStock = products.find(p => p.id === productId)!;
-         const availableStock = productInStock.stock + itemToUpdate.quantity;
+         // When checking available stock, we need to add the quantity currently in cart
+         const availableStock = productInStock.stock + (itemToUpdate?.quantity || 0);
 
          if(quantity > availableStock) return;
  
@@ -117,6 +122,7 @@ export const useStore = create<AppState>()(
           total,
           paymentMethod,
           date: new Date().toISOString(),
+          operator: get().currentUser?.name || 'N/A'
         };
 
         const newProducts = [...products];
@@ -150,10 +156,18 @@ export const useStore = create<AppState>()(
           employees: state.employees.filter((e) => e.id !== employeeId),
         }));
       },
+      
+      setCurrentUser: (employee) => {
+        set({ currentUser: employee, cart: [] }); // Clear cart on user switch
+      }
     }),
     {
       name: 'pos-storage',
       storage: createJSONStorage(() => localStorage),
+      partialize: (state) =>
+        Object.fromEntries(
+          Object.entries(state).filter(([key]) => !['currentUser'].includes(key))
+        ),
     }
   )
 );
