@@ -35,15 +35,20 @@ export default function SalesHistory() {
   const { transactions } = useStore();
   const [dateFilter, setDateFilter] = useState('');
   const [paymentFilter, setPaymentFilter] = useState('all');
+  const [operatorFilter, setOperatorFilter] = useState('');
   
   const filteredTransactions = useMemo(() => {
+    const lowerCaseOperatorFilter = operatorFilter.toLowerCase();
     return transactions.filter(tx => {
         const txDate = new Date(tx.date);
         const dateMatch = !dateFilter || txDate.toISOString().split('T')[0] === dateFilter;
         const paymentMatch = paymentFilter === 'all' || tx.paymentMethod === paymentFilter;
-        return dateMatch && paymentMatch;
+        const operatorMatch = !operatorFilter || 
+                              tx.operator.toLowerCase().includes(lowerCaseOperatorFilter) ||
+                              (tx.operatorCod && tx.operatorCod.toLowerCase().includes(lowerCaseOperatorFilter));
+        return dateMatch && paymentMatch && operatorMatch;
     }).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [transactions, dateFilter, paymentFilter]);
+  }, [transactions, dateFilter, paymentFilter, operatorFilter]);
 
   const totalSales = useMemo(() => {
     return filteredTransactions.reduce((sum, tx) => sum + tx.total, 0);
@@ -75,7 +80,7 @@ export default function SalesHistory() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="mb-4 flex items-center gap-4">
+                    <div className="mb-4 flex flex-wrap items-center gap-4">
                     <Input
                         type="date"
                         value={dateFilter}
@@ -93,6 +98,13 @@ export default function SalesHistory() {
                         <SelectItem value="PIX">PIX</SelectItem>
                         </SelectContent>
                     </Select>
+                    <Input
+                        type="text"
+                        placeholder="Filtrar por operador..."
+                        value={operatorFilter}
+                        onChange={(e) => setOperatorFilter(e.target.value)}
+                        className="max-w-sm bg-white/60 border-black/20 focus:bg-white"
+                    />
                     </div>
 
                     <div className="border border-dashed border-black/20 rounded-md">
@@ -123,7 +135,7 @@ export default function SalesHistory() {
                                                         {txDate.toLocaleDateString()}
                                                     </TableCell>
                                                     <TableCell className="text-center">{txDate.toLocaleTimeString()}</TableCell>
-                                                    <TableCell className="text-center">{tx.operator}</TableCell>
+                                                    <TableCell className="text-center">{tx.operatorCod ? `${tx.operatorCod} -` : ''} {tx.operator}</TableCell>
                                                     <TableCell className="text-center">
                                                         <Badge variant="outline" className="border-black/50">{tx.paymentMethod}</Badge>
                                                     </TableCell>

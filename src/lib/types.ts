@@ -18,6 +18,7 @@ export interface Transaction {
   paymentMethod: 'Dinheiro' | 'Cartão' | 'PIX';
   date: string;
   operator: string;
+  operatorCod?: string;
   cashRegisterSessionId?: string;
 }
 

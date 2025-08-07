@@ -132,6 +132,7 @@ export const useStore = create<AppState>()(
           paymentMethod,
           date: new Date().toISOString(),
           operator: currentUser.name,
+          operatorCod: currentUser.cod,
           cashRegisterSessionId: currentCashRegister.id,
         };
         
