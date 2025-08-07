@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, ShoppingCart, Package, BarChart, X } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Package, BarChart, Users, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -10,8 +10,9 @@ import { useStore } from '@/lib/store';
 import Checkout from '@/components/checkout';
 import ProductList from '@/components/product-list';
 import SalesHistory from '@/components/sales-history';
+import EmployeeList from '@/components/employee-list';
 
-type NavItem = 'Caixa' | 'Produtos' | 'Relatórios';
+type NavItem = 'Caixa' | 'Produtos' | 'Relatórios' | 'Funcionários';
 
 export default function Home() {
   const [activeNav, setActiveNav] = useState<NavItem>('Caixa');
@@ -29,6 +30,8 @@ export default function Home() {
         return <ProductList />;
       case 'Relatórios':
         return <SalesHistory />;
+      case 'Funcionários':
+        return <EmployeeList />;
       default:
         return null;
     }
@@ -67,6 +70,12 @@ export default function Home() {
             icon={BarChart}
             isActive={activeNav === 'Relatórios'}
             onClick={() => setActiveNav('Relatórios')}
+          />
+          <NavItemButton
+            label="Funcionários"
+            icon={Users}
+            isActive={activeNav === 'Funcionários'}
+            onClick={() => setActiveNav('Funcionários')}
           />
         </nav>
       </aside>

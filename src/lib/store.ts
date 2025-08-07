@@ -1,12 +1,13 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Product, CartItem, Transaction } from '@/lib/types';
+import type { Product, CartItem, Transaction, Employee } from '@/lib/types';
 
 interface AppState {
   products: Product[];
   cart: CartItem[];
   transactions: Transaction[];
+  employees: Employee[];
   addProduct: (product: Omit<Product, 'id'>) => void;
   updateProduct: (product: Product) => void;
   deleteProduct: (productId: string) => void;
@@ -15,6 +16,9 @@ interface AppState {
   updateCartItemQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
   finalizeSale: (paymentMethod: 'Dinheiro' | 'Cartão' | 'PIX', total: number) => void;
+  addEmployee: (employee: Omit<Employee, 'id'>) => void;
+  updateEmployee: (employee: Employee) => void;
+  deleteEmployee: (employeeId: string) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -27,6 +31,10 @@ export const useStore = create<AppState>()(
       ],
       cart: [],
       transactions: [],
+      employees: [
+        { id: '1', name: 'Alice', role: 'Gerente' },
+        { id: '2', name: 'Beto', role: 'Vendedor' },
+      ],
 
       addProduct: (productData) => {
         const newProduct: Product = { ...productData, id: new Date().toISOString() };
@@ -61,16 +69,12 @@ export const useStore = create<AppState>()(
               ? { ...item, quantity: item.quantity + 1 }
               : item
           );
-           const newProducts = products.map((p) =>
-            p.id === product.id ? { ...p, stock: p.stock - quantityDiff } : p
-          );
-           set({ cart: newCart, products: newProducts });
+           set((state) => ({ 
+                cart: newCart, 
+            }));
 
         } else {
-           const newProducts = products.map((p) =>
-            p.id === product.id ? { ...p, stock: p.stock - 1 } : p
-          );
-          set({ cart: [...cart, { ...product, quantity: 1 }], products: newProducts });
+          set((state) => ({ cart: [...state.cart, { ...product, quantity: 1 }] }));
         }
       },
       removeFromCart: (productId) => {
@@ -79,11 +83,8 @@ export const useStore = create<AppState>()(
         if (!itemToRemove) return;
 
         const newCart = cart.filter((item) => item.id !== productId);
-        const newProducts = products.map((p) =>
-            p.id === productId ? { ...p, stock: p.stock + itemToRemove.quantity } : p
-        );
-
-        set({ cart: newCart, products: newProducts });
+        
+        set({ cart: newCart });
       },
       updateCartItemQuantity: (productId, quantity) => {
          const { cart, products } = get();
@@ -91,9 +92,9 @@ export const useStore = create<AppState>()(
          if (!itemToUpdate) return;
  
          const productInStock = products.find(p => p.id === productId)!;
-         const quantityDiff = quantity - itemToUpdate.quantity;
- 
-         if (productInStock.stock < quantityDiff) return; // Not enough stock
+         const availableStock = productInStock.stock + itemToUpdate.quantity;
+
+         if(quantity > availableStock) return;
  
          if (quantity <= 0) {
             get().removeFromCart(productId);
@@ -101,23 +102,13 @@ export const useStore = create<AppState>()(
          }
 
          const newCart = cart.map(item => item.id === productId ? { ...item, quantity } : item);
-         const newProducts = products.map(p => p.id === productId ? { ...p, stock: p.stock - quantityDiff } : p);
-         
-         set({ cart: newCart, products: newProducts });
+         set({ cart: newCart });
       },
       clearCart: () => {
-        const { cart, products } = get();
-         const newProducts = [...products];
-         cart.forEach(cartItem => {
-             const productIndex = newProducts.findIndex(p => p.id === cartItem.id);
-             if (productIndex !== -1) {
-                 newProducts[productIndex].stock += cartItem.quantity;
-             }
-         });
-         set({ cart: [], products: newProducts });
+         set({ cart: [] });
       },
       finalizeSale: (paymentMethod, total) => {
-        const { cart } = get();
+        const { cart, products } = get();
         if (cart.length === 0) return;
 
         const newTransaction: Transaction = {
@@ -128,9 +119,35 @@ export const useStore = create<AppState>()(
           date: new Date().toISOString(),
         };
 
+        const newProducts = [...products];
+        cart.forEach(cartItem => {
+            const productIndex = newProducts.findIndex(p => p.id === cartItem.id);
+            if (productIndex !== -1) {
+                newProducts[productIndex].stock -= cartItem.quantity;
+            }
+        });
+
         set((state) => ({
           transactions: [newTransaction, ...state.transactions],
-          cart: [], 
+          cart: [],
+          products: newProducts,
+        }));
+      },
+
+      addEmployee: (employeeData) => {
+        const newEmployee: Employee = { ...employeeData, id: new Date().toISOString() };
+        set((state) => ({ employees: [...state.employees, newEmployee] }));
+      },
+      updateEmployee: (updatedEmployee) => {
+        set((state) => ({
+          employees: state.employees.map((e) =>
+            e.id === updatedEmployee.id ? updatedEmployee : e
+          ),
+        }));
+      },
+      deleteEmployee: (employeeId) => {
+        set((state) => ({
+          employees: state.employees.filter((e) => e.id !== employeeId),
         }));
       },
     }),

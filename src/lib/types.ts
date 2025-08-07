@@ -18,3 +18,11 @@ export interface Transaction {
   paymentMethod: 'Dinheiro' | 'Cartão' | 'PIX';
   date: string;
 }
+
+export type EmployeeRole = 'Vendedor' | 'Gerente';
+
+export interface Employee {
+  id: string;
+  name: string;
+  role: EmployeeRole;
+}
