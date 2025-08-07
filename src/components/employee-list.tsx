@@ -43,16 +43,21 @@ import { Pen, Trash2, PlusCircle } from 'lucide-react';
 
 const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null, onSave: (e: any) => void, onDone: () => void }) => {
     const [name, setName] = useState(employee?.name || '');
+    const [cod, setCod] = useState(employee?.cod || '');
     const [role, setRole] = useState<EmployeeRole>(employee?.role || 'Vendedor');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave({ id: employee?.id, name, role });
+        onSave({ id: employee?.id, name, cod, role });
         onDone();
     };
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+                <Label htmlFor="cod">Código do Funcionário</Label>
+                <Input id="cod" value={cod} onChange={e => setCod(e.target.value)} required />
+            </div>
             <div>
                 <Label htmlFor="name">Nome do Funcionário</Label>
                 <Input id="name" value={name} onChange={e => setName(e.target.value)} required />
@@ -132,6 +137,7 @@ export default function EmployeeList() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Código</TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Cargo</TableHead>
               <TableHead className="text-right">Ações</TableHead>
@@ -140,6 +146,7 @@ export default function EmployeeList() {
           <TableBody>
             {employees.map((employee) => (
               <TableRow key={employee.id}>
+                <TableCell className="font-mono">{employee.cod}</TableCell>
                 <TableCell className="font-medium">{employee.name}</TableCell>
                 <TableCell>{employee.role}</TableCell>
                 <TableCell className="text-right">

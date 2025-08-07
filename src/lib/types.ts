@@ -25,6 +25,7 @@ export type EmployeeRole = 'Vendedor' | 'Gerente' | 'Estoquista';
 
 export interface Employee {
   id: string;
+  cod: string;
   name: string;
   role: EmployeeRole;
 }

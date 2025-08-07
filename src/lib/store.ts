@@ -38,9 +38,9 @@ export const useStore = create<AppState>()(
       cart: [],
       transactions: [],
       employees: [
-        { id: '1', name: 'Alice', role: 'Gerente' },
-        { id: '2', name: 'Beto', role: 'Vendedor' },
-        { id: '3', name: 'Carlos', role: 'Estoquista' },
+        { id: '1', cod: 'G-001', name: 'Alice', role: 'Gerente' },
+        { id: '2', cod: 'V-001', name: 'Beto', role: 'Vendedor' },
+        { id: '3', cod: 'E-001', name: 'Carlos', role: 'Estoquista' },
       ],
       currentUser: null,
       cashRegisterHistory: [],

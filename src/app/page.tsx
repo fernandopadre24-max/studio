@@ -35,7 +35,7 @@ function UserSelectionScreen() {
                         >
                             <User className="h-5 w-5" />
                             <div className="text-left">
-                                <div>{employee.name}</div>
+                                <div>{employee.cod} - {employee.name}</div>
                                 <div className="text-xs text-muted-foreground">{employee.role}</div>
                             </div>
                         </Button>
@@ -85,6 +85,8 @@ export default function Home() {
   };
   
   const hasCashierAccess = currentUser?.role === 'Vendedor' || currentUser?.role === 'Gerente';
+  const hasEmployeeAccess = currentUser?.role === 'Gerente';
+
 
   if (!isClient) {
     return (
@@ -131,13 +133,13 @@ export default function Home() {
               icon={Users}
               isActive={activeNav === 'Funcionários'}
               onClick={() => setActiveNav('Funcionários')}
-              disabled={currentUser.role !== 'Gerente'}
+              disabled={!hasEmployeeAccess}
             />
           </nav>
         </div>
         <div className='space-y-2'>
             <div className='p-3 rounded-md bg-secondary text-secondary-foreground text-sm'>
-                <p className='font-bold'>{currentUser.name}</p>
+                <p className='font-bold'>{currentUser.cod} - {currentUser.name}</p>
                 <p className='text-xs'>{currentUser.role}</p>
             </div>
             <Button variant="outline" className="w-full justify-start" onClick={handleLogout}>
