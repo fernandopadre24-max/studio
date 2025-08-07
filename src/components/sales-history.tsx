@@ -10,14 +10,6 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -28,6 +20,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 import { formatDistanceStrict } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -54,13 +47,13 @@ export default function SalesHistory() {
   }, [filteredTransactions]);
   
   const productSummary = useMemo(() => {
-    const summary: { [key: string]: { name: string; quantity: number } } = {};
+    const summary: { [key: string]: { name: string; quantity: number, unit: string } } = {};
     filteredTransactions.forEach(tx => {
       tx.items.forEach(item => {
         if (summary[item.id]) {
           summary[item.id].quantity += item.quantity;
         } else {
-          summary[item.id] = { name: item.name, quantity: item.quantity };
+          summary[item.id] = { name: item.name, quantity: item.quantity, unit: item.unit };
         }
       });
     });
@@ -165,7 +158,7 @@ export default function SalesHistory() {
                                                     <ul className="space-y-1 list-disc list-inside">
                                                         {tx.items.map(item => (
                                                             <li key={item.id}>
-                                                                {item.quantity}x {item.cod} - {item.name} - R$ {(item.price * item.quantity).toFixed(2)}
+                                                                {item.quantity} {item.unit} - {item.cod} - {item.name} - R$ {(item.price * item.quantity).toFixed(2)}
                                                             </li>
                                                         ))}
                                                     </ul>
@@ -205,7 +198,7 @@ export default function SalesHistory() {
                                 productSummary.map(prod => (
                                     <TableRow key={prod.name} className="border-dashed border-black/20 hover:bg-black/5">
                                         <TableCell className="font-medium">{prod.name}</TableCell>
-                                        <TableCell className="text-right font-bold">{prod.quantity}</TableCell>
+                                        <TableCell className="text-right font-bold">{prod.quantity.toFixed(3)} {prod.unit}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (

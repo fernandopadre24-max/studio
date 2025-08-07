@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Product, CartItem, Transaction, Employee, CashRegisterSession, ThemeSettings } from '@/lib/types';
+import type { Product, CartItem, Transaction, Employee, CashRegisterSession, ThemeSettings, ProductUnit } from '@/lib/types';
 
 interface AppState {
   products: Product[];
@@ -15,7 +15,7 @@ interface AppState {
   addProduct: (product: Omit<Product, 'id' | 'cod'>) => void;
   updateProduct: (product: Product) => void;
   deleteProduct: (productId: string) => void;
-  addToCart: (product: Product) => void;
+  addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: string) => void;
   updateCartItemQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -40,9 +40,9 @@ export const useStore = create<AppState>()(
   persist(
     (set, get) => ({
       products: [
-        { id: '1', cod: '7891000315507', name: 'Café Expresso', price: 5.0, stock: 100 },
-        { id: '2', cod: '7891000051019', name: 'Pão de Queijo', price: 3.5, stock: 50 },
-        { id: '3', cod: '7896024921028', name: 'Bolo de Fubá', price: 7.0, stock: 30 },
+        { id: '1', cod: '7891000315507', name: 'Café Expresso', price: 5.0, stock: 100, unit: 'UN' },
+        { id: '2', cod: '7891000051019', name: 'Pão de Queijo', price: 25.0, stock: 5, unit: 'KG' },
+        { id: '3', cod: '7896024921028', name: 'Bolo de Fubá', price: 7.0, stock: 30, unit: 'UN' },
       ],
       cart: [],
       transactions: [],
@@ -91,24 +91,31 @@ export const useStore = create<AppState>()(
         }));
       },
 
-      addToCart: (product) => {
+      addToCart: (product, quantity = 1) => {
         const { cart, products } = get();
         const productInStock = products.find((p) => p.id === product.id);
         if (!productInStock || productInStock.stock <= 0) return;
 
         const existingItem = cart.find((item) => item.id === product.id);
+        
+        const isWeightBased = product.unit === 'KG' || product.unit === 'G';
+        const addQuantity = isWeightBased ? quantity : Math.floor(quantity);
+
 
         if (existingItem) {
-          if (existingItem.quantity >= productInStock.stock) return; // Prevent adding more than in stock
+          const newQuantity = existingItem.quantity + addQuantity;
+          if (newQuantity > productInStock.stock) return; // Prevent adding more than in stock
+          
           const newCart = cart.map((item) =>
             item.id === product.id
-              ? { ...item, quantity: item.quantity + 1 }
+              ? { ...item, quantity: newQuantity }
               : item
           );
            set({ cart: newCart });
 
         } else {
-          set((state) => ({ cart: [...state.cart, { ...product, quantity: 1 }] }));
+           if (addQuantity > productInStock.stock) return;
+           set((state) => ({ cart: [...state.cart, { ...product, quantity: addQuantity }] }));
         }
       },
       removeFromCart: (productId) => {
@@ -123,15 +130,18 @@ export const useStore = create<AppState>()(
  
          const productInStock = products.find(p => p.id === productId)!;
          const availableStock = productInStock.stock;
+         
+         const isWeightBased = itemToUpdate.unit === 'KG' || itemToUpdate.unit === 'G';
+         const newQuantity = isWeightBased ? quantity : Math.floor(quantity);
 
-         if(quantity > availableStock) return;
+         if(newQuantity > availableStock) return;
  
-         if (quantity <= 0) {
+         if (newQuantity <= 0) {
             get().removeFromCart(productId);
             return;
          }
 
-         const newCart = cart.map(item => item.id === productId ? { ...item, quantity } : item);
+         const newCart = cart.map(item => item.id === productId ? { ...item, quantity: newQuantity } : item);
          set({ cart: newCart });
       },
       clearCart: () => {

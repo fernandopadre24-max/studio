@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
-import type { Product } from '@/lib/types';
+import type { Product, ProductUnit } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +13,6 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  CardFooter,
 } from '@/components/ui/card';
 import {
   Table,
@@ -28,11 +27,17 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogFooter,
   DialogClose,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Pen, Trash2, PlusCircle } from 'lucide-react';
 
 const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, onSave: (p: any) => void, onDone: () => void }) => {
@@ -40,6 +45,7 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
     const [cod, setCod] = useState(product?.cod || '');
     const [price, setPrice] = useState(product?.price || 0);
     const [stock, setStock] = useState(product?.stock || 0);
+    const [unit, setUnit] = useState<ProductUnit>(product?.unit || 'UN');
     const { getNextProductCode } = useStore();
 
     useEffect(() => {
@@ -50,7 +56,7 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave({ id: product?.id, name, cod, price, stock });
+        onSave({ id: product?.id, name, cod, price, stock, unit });
         onDone();
     };
 
@@ -64,13 +70,29 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
                 <Label htmlFor="name">Nome do Produto</Label>
                 <Input id="name" value={name} onChange={e => setName(e.target.value)} required />
             </div>
-            <div>
-                <Label htmlFor="price">Preço (R$)</Label>
-                <Input id="price" type="number" step="0.01" value={price} onChange={e => setPrice(parseFloat(e.target.value))} required />
+            <div className='grid grid-cols-2 gap-4'>
+                <div>
+                    <Label htmlFor="price">Preço (R$)</Label>
+                    <Input id="price" type="number" step="0.01" value={price} onChange={e => setPrice(parseFloat(e.target.value))} required />
+                </div>
+                 <div>
+                    <Label htmlFor="unit">Unidade</Label>
+                    <Select value={unit} onValueChange={(value: ProductUnit) => setUnit(value)}>
+                        <SelectTrigger id="unit">
+                            <SelectValue placeholder="Selecione"/>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="UN">Unidade (UN)</SelectItem>
+                            <SelectItem value="KG">Quilo (KG)</SelectItem>
+                            <SelectItem value="G">Grama (G)</SelectItem>
+                            <SelectItem value="CX">Caixa (CX)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
             <div>
                 <Label htmlFor="stock">Estoque</Label>
-                <Input id="stock" type="number" value={stock} onChange={e => setStock(parseInt(e.target.value, 10))} required />
+                <Input id="stock" type="number" step="0.001" value={stock} onChange={e => setStock(parseFloat(e.target.value))} required />
             </div>
             <DialogFooter>
                  <DialogClose asChild>
@@ -146,7 +168,7 @@ export default function ProductList() {
               <TableRow key={product.id}>
                 <TableCell className="font-mono">{product.cod}</TableCell>
                 <TableCell className="font-medium">{product.name}</TableCell>
-                <TableCell>R$ {product.price.toFixed(2)}</TableCell>
+                <TableCell>R$ {product.price.toFixed(2)} / {product.unit}</TableCell>
                 <TableCell>{product.stock}</TableCell>
                 <TableCell className="text-right">
                   <Button variant="ghost" size="icon" onClick={() => openDialogForEdit(product)}>

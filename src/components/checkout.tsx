@@ -50,6 +50,8 @@ function ProductSelector() {
     const { toast } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
     const [isScannerOpen, setScannerOpen] = useState(false);
+    const [weightProduct, setWeightProduct] = useState<Product | null>(null);
+    const [weight, setWeight] = useState('');
 
     const filteredProducts = useMemo(() => {
         if (!searchTerm) return products;
@@ -60,12 +62,31 @@ function ProductSelector() {
         );
     }, [products, searchTerm]);
 
-    const handleAddToCart = (product: Product) => {
-        addToCart(product);
-        toast({
-            title: "Produto adicionado",
-            description: `${product.name} foi adicionado ao carrinho.`,
-        })
+    const handleProductClick = (product: Product) => {
+        if (product.unit === 'KG' || product.unit === 'G') {
+            setWeightProduct(product);
+        } else {
+            addToCart(product);
+            toast({
+                title: "Produto adicionado",
+                description: `${product.name} foi adicionado ao carrinho.`,
+            })
+        }
+    }
+    
+    const handleAddWeightProduct = () => {
+        if (weightProduct && weight) {
+            const quantity = parseFloat(weight);
+            if (quantity > 0) {
+                addToCart(weightProduct, quantity);
+                toast({
+                    title: "Produto adicionado",
+                    description: `${quantity}${weightProduct.unit} de ${weightProduct.name} adicionado ao carrinho.`,
+                });
+                setWeightProduct(null);
+                setWeight('');
+            }
+        }
     }
     
     const handleScan = (code: string | null) => {
@@ -73,7 +94,7 @@ function ProductSelector() {
             setScannerOpen(false);
             const product = findProductByCode(code);
             if (product) {
-                handleAddToCart(product);
+                handleProductClick(product);
             } else {
                 toast({
                     variant: "destructive",
@@ -86,6 +107,28 @@ function ProductSelector() {
 
     return (
         <div className='flex flex-col gap-4'>
+            <Dialog open={!!weightProduct} onOpenChange={() => setWeightProduct(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Pesar Produto</DialogTitle>
+                        <DialogDescription>Insira o peso para {weightProduct?.name} ({weightProduct?.unit})</DialogDescription>
+                    </DialogHeader>
+                    <div className='space-y-2'>
+                        <Label htmlFor='weight'>Peso ({weightProduct?.unit})</Label>
+                        <Input 
+                            id="weight"
+                            type="number"
+                            value={weight}
+                            onChange={(e) => setWeight(e.target.value)}
+                            placeholder='0.000'
+                        />
+                    </div>
+                    <DialogFooter>
+                         <Button variant="outline" onClick={() => setWeightProduct(null)}>Cancelar</Button>
+                         <Button onClick={handleAddWeightProduct}>Adicionar ao Carrinho</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
             <div className="flex gap-2">
                  <div className="relative flex-1">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -120,13 +163,13 @@ function ProductSelector() {
                             key={product.id} 
                             variant="ghost" 
                             className="w-full justify-start h-auto py-2"
-                            onClick={() => handleAddToCart(product)}
+                            onClick={() => handleProductClick(product)}
                             disabled={product.stock <= 0}
                         >
                             <div className='flex flex-col items-start'>
                                 <p>{product.cod} - {product.name}</p>
                                 <p className='text-sm text-muted-foreground'>
-                                    R$ {product.price.toFixed(2)} | Estoque: {product.stock}
+                                    R$ {product.price.toFixed(2)} / {product.unit} | Estoque: {product.stock}
                                 </p>
                             </div>
                         </Button>
@@ -372,23 +415,29 @@ export default function Checkout() {
                               <TableCell className="font-medium">{item.name}</TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-2">
-                                  <Button
-                                    size="icon"
-                                    variant="outline"
-                                    className="h-6 w-6 bg-transparent border-black/20 hover:bg-black/10"
-                                    onClick={() => updateCartItemQuantity(item.id, item.quantity - 1)}
-                                  >
-                                    <Minus className="h-3 w-3" />
-                                  </Button>
-                                  <span>{item.quantity}</span>
-                                  <Button
-                                    size="icon"
-                                    variant="outline"
-                                    className="h-6 w-6 bg-transparent border-black/20 hover:bg-black/10"
-                                    onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)}
-                                  >
-                                    <Plus className="h-3 w-3" />
-                                  </Button>
+                                   { item.unit === 'UN' || item.unit === 'CX' ? (
+                                    <>
+                                        <Button
+                                            size="icon"
+                                            variant="outline"
+                                            className="h-6 w-6 bg-transparent border-black/20 hover:bg-black/10"
+                                            onClick={() => updateCartItemQuantity(item.id, item.quantity - 1)}
+                                        >
+                                            <Minus className="h-3 w-3" />
+                                        </Button>
+                                        <span>{item.quantity}</span>
+                                        <Button
+                                            size="icon"
+                                            variant="outline"
+                                            className="h-6 w-6 bg-transparent border-black/20 hover:bg-black/10"
+                                            onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)}
+                                        >
+                                            <Plus className="h-3 w-3" />
+                                        </Button>
+                                    </>
+                                   ) : (
+                                    <span>{item.quantity.toFixed(3)} {item.unit}</span>
+                                   )}
                                 </div>
                               </TableCell>
                               <TableCell>R$ {item.price.toFixed(2)}</TableCell>
@@ -420,7 +469,7 @@ export default function Checkout() {
               <CardFooter className="flex-col items-start p-4 border-t border-dashed border-black/20 space-y-2">
                 <div className="w-full flex justify-between font-bold">
                     <span>Nº DE ITENS: {totalItems}</span>
-                    <span>QUANTIDADES: {totalQuantity}</span>
+                    <span>QUANTIDADES: {totalQuantity.toFixed(3)}</span>
                 </div>
                 <Button variant="outline" size="sm" onClick={clearCart} disabled={cart.length === 0} className="w-full bg-transparent border-black/20 hover:bg-black/10">Limpar Carrinho</Button>
               </CardFooter>

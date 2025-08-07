@@ -1,11 +1,14 @@
 
 
+export type ProductUnit = 'UN' | 'KG' | 'G' | 'CX';
+
 export interface Product {
   id: string;
   cod: string;
   name: string;
   price: number;
   stock: number;
+  unit: ProductUnit;
 }
 
 export interface CartItem extends Product {
