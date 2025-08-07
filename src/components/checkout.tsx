@@ -287,7 +287,7 @@ export default function Checkout() {
                             size="sm" 
                             onClick={() => setCloseDialog(true)}
                             className="font-sans"
-                            disabled={currentUser?.role !== 'Gerente'}>
+                            disabled={currentUser?.role !== 'Gerente' && currentUser?.role !== 'Vendedor'}>
                             <XCircle className="mr-2 h-4 w-4" /> Fechar Caixa
                         </Button>
                         {currentCashRegister && <CloseCashRegisterDialog session={currentCashRegister} onClose={() => { closeCashRegister(); setCloseDialog(false); }} />}
