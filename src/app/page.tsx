@@ -2,23 +2,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, ShoppingCart, Package, BarChart, Users, Settings, Truck, UserCheck, KeyRound } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Package, BarChart, Users, Settings, UserCheck, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/lib/store';
 import Checkout from '@/components/checkout';
-import ProductList from '@/components/product-list';
 import SalesHistory from '@/components/sales-history';
 import EmployeeList from '@/components/employee-list';
-import SupplierList from '@/components/supplier-list';
 import SettingsPage from '@/components/settings';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import type { Employee } from '@/lib/types';
+import ProductsAndSuppliers from '@/components/products-and-suppliers';
 
 
 function UserSelectionScreen() {
@@ -151,9 +150,7 @@ export default function Home() {
       case 'Caixa':
         return <Checkout />;
       case 'Produtos':
-        return <ProductList />;
-      case 'Fornecedores':
-        return <SupplierList />;
+        return <ProductsAndSuppliers />;
       case 'Relatórios':
         return <SalesHistory />;
       case 'Funcionários':
@@ -168,7 +165,6 @@ export default function Home() {
   const hasCashierAccess = currentUser?.roleName === 'Vendedor' || currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Caixa' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
   const hasEmployeeAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
   const hasSettingsAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Administrador';
-  const hasSupplierAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Estoquista' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
 
   if (!isClient) {
     return (
@@ -203,13 +199,6 @@ export default function Home() {
               icon={Package}
               isActive={activeNav === 'Produtos'}
               onClick={() => setActiveNav('Produtos')}
-            />
-            <NavItemButton
-              label="Fornecedores"
-              icon={Truck}
-              isActive={activeNav === 'Fornecedores'}
-              onClick={() => setActiveNav('Fornecedores')}
-              disabled={!hasSupplierAccess}
             />
             <NavItemButton
               label="Relatórios"
@@ -250,7 +239,7 @@ export default function Home() {
   );
 }
 
-type NavItem = 'Caixa' | 'Produtos' | 'Fornecedores' | 'Relatórios' | 'Funcionários' | 'Configurações';
+type NavItem = 'Caixa' | 'Produtos' | 'Relatórios' | 'Funcionários' | 'Configurações';
 
 interface NavItemButtonProps {
     label: string;
