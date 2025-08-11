@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, ShoppingCart, Package, BarChart, Users, Settings, Truck } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Package, BarChart, Users, Settings, Truck, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/lib/store';
@@ -12,6 +12,45 @@ import SalesHistory from '@/components/sales-history';
 import EmployeeList from '@/components/employee-list';
 import SupplierList from '@/components/supplier-list';
 import SettingsPage from '@/components/settings';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import type { Employee } from '@/lib/types';
+
+
+function UserSelectionScreen() {
+    const { employees, login, getRoleName } = useStore();
+
+    return (
+        <div className="flex min-h-screen items-center justify-center bg-muted/40">
+            <Card className="w-full max-w-md">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><UserCheck /> Selecionar Usuário</CardTitle>
+                    <CardDescription>Clique no seu nome para acessar o sistema.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ScrollArea className="h-72">
+                        <div className="space-y-2">
+                            {employees.map((employee) => (
+                                <Button
+                                    key={employee.id}
+                                    variant="outline"
+                                    className="w-full justify-start h-auto py-3"
+                                    onClick={() => login(employee.cod)}
+                                >
+                                    <div className="flex flex-col items-start">
+                                        <p className="font-bold">{employee.name}</p>
+                                        <p className="text-sm text-muted-foreground">{getRoleName(employee.roleId)}</p>
+                                    </div>
+                                </Button>
+                            ))}
+                        </div>
+                    </ScrollArea>
+                </CardContent>
+            </Card>
+        </div>
+    );
+}
+
 
 export default function Home() {
   const { currentUser, login, logout, clearCart } = useStore();
@@ -20,10 +59,6 @@ export default function Home() {
 
   useEffect(() => {
     setIsClient(true);
-    // This should run only once to log in the default user if no one is logged in.
-    if (!useStore.getState().currentUser) {
-      useStore.getState().login('ADM-001');
-    }
   }, []);
   
   useEffect(() => {
@@ -69,12 +104,16 @@ export default function Home() {
   const hasSettingsAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Administrador';
   const hasSupplierAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Estoquista' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
 
-  if (!isClient || !currentUser) {
+  if (!isClient) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-2xl font-semibold">Carregando Sistema PDV...</div>
       </div>
     );
+  }
+  
+  if (!currentUser) {
+    return <UserSelectionScreen />;
   }
 
   return (
@@ -133,6 +172,7 @@ export default function Home() {
                 <p className='font-bold'>{currentUser.cod} - {currentUser.name}</p>
                 <p className='text-xs'>{currentUser.roleName}</p>
             </div>
+            <Button variant="ghost" onClick={handleLogout} className="w-full">Sair</Button>
         </div>
       </aside>
       <main className="flex-1 p-4 sm:p-8 overflow-auto">
@@ -179,3 +219,5 @@ function NavItemButton({ label, icon: Icon, isActive, onClick, disabled }: NavIt
         </Button>
     )
 }
+
+    

@@ -306,15 +306,16 @@ export const useStore = create<AppState>()(
       },
       
       login: (userCode) => {
-        const { employees } = get();
+        const { employees, roles } = get();
         const employee = employees.find((e) => e.cod === userCode);
 
         if (!employee) {
           return false;
         }
+        
+        const role = roles.find(r => r.id === employee.roleId);
 
-        const roleName = get().getRoleName(employee.roleId);
-        set({ currentUser: { ...employee, roleName }, cart: [] });
+        set({ currentUser: { ...employee, roleName: role?.name || 'N/A' }, cart: [] });
         return true;
       },
 
@@ -379,3 +380,5 @@ export const useStore = create<AppState>()(
     }
   )
 );
+
+    
