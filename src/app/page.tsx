@@ -2,9 +2,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, ShoppingCart, Package, BarChart, Users, LogOut, User, Settings, Truck } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Package, BarChart, Users, Settings, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/lib/store';
 import Checkout from '@/components/checkout';
@@ -13,28 +12,22 @@ import SalesHistory from '@/components/sales-history';
 import EmployeeList from '@/components/employee-list';
 import SupplierList from '@/components/supplier-list';
 import SettingsPage from '@/components/settings';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-
 
 export default function Home() {
-  const { currentUser, logout, clearCart } = useStore();
-  const login = useStore(state => state.login);
+  const { currentUser, login, logout, clearCart } = useStore();
   const [activeNav, setActiveNav] = useState<NavItem>('Caixa');
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-    // Auto-login as admin
     if (!currentUser) {
-        login('ADM-001');
+        // Use a static user code to avoid dependency issues with login function
+        useStore.getState().login('ADM-001');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser, login]);
+  }, [currentUser]);
   
   useEffect(() => {
     if (!currentUser) return;
-    // Reset to 'Caixa' if user has permission, otherwise to 'Produtos'
     if (currentUser.roleName === 'Vendedor' || currentUser.roleName === 'Gerente' || currentUser.roleName === 'Caixa' || currentUser.roleName === 'Supervisor' || currentUser.roleName === 'Administrador') {
       setActiveNav('Caixa');
     } else {
@@ -62,7 +55,7 @@ export default function Home() {
       case 'Configurações':
         return <SettingsPage />;
       default:
-        return null;
+        return <div className="text-center text-lg text-muted-foreground">Selecione uma opção no menu.</div>;
     }
   };
   
@@ -71,11 +64,10 @@ export default function Home() {
   const hasSettingsAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Administrador';
   const hasSupplierAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Estoquista' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
 
-
   if (!isClient || !currentUser) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="text-2xl font-semibold">Carregando...</div>
+        <div className="text-2xl font-semibold">Carregando Sistema PDV...</div>
       </div>
     );
   }
@@ -136,14 +128,9 @@ export default function Home() {
                 <p className='font-bold'>{currentUser.cod} - {currentUser.name}</p>
                 <p className='text-xs'>{currentUser.roleName}</p>
             </div>
-            {/* Ocultando botão de logout para ter um usuário fixo
-            <Button variant="outline" className="w-full justify-start" onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" /> Trocar Usuário
-            </Button>
-            */}
         </div>
       </aside>
-      <main className="flex-1 p-4 sm:p-8">
+      <main className="flex-1 p-4 sm:p-8 overflow-auto">
           {activeNav === 'Caixa' && !hasCashierAccess 
               ? <div className='text-center text-lg text-muted-foreground'>Você não tem permissão para acessar o caixa.</div>
               : renderContent()}
@@ -176,7 +163,8 @@ function NavItemButton({ label, icon: Icon, isActive, onClick, disabled }: NavIt
                 {
                     "bg-background text-foreground shadow-[inset_5px_5px_10px_#e0e0e0,inset_-5px_-5px_10px_#ffffff] dark:shadow-[inset_5px_5px_10px_#1a1a1a,inset_-5px_-5px_10px_#2a2a2a]": isActive,
                     "bg-muted/40": !isActive
-                }
+                },
+                 {"opacity-50 cursor-not-allowed": disabled}
             )}
             onClick={onClick}
             disabled={disabled}
