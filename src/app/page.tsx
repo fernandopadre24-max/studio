@@ -18,7 +18,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 export default function Home() {
-  const { currentUser, logout, clearCart, login } = useStore();
+  const { currentUser, logout, clearCart } = useStore();
+  const login = useStore(state => state.login);
   const [activeNav, setActiveNav] = useState<NavItem>('Caixa');
   const [isClient, setIsClient] = useState(false);
 
@@ -29,7 +30,7 @@ export default function Home() {
         login('ADM-001');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser]);
+  }, [currentUser, login]);
   
   useEffect(() => {
     if (!currentUser) return;
