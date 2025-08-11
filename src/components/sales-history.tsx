@@ -20,15 +20,15 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Printer, BarChart2, LineChart } from 'lucide-react';
+import { Printer, BarChart2, LineChart, PieChart } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 import { format, formatDistanceStrict } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Transaction } from '@/lib/types';
 import PrintReceipt from './print-receipt';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Line as RechartsLine, LineChart as RechartsLineChart } from 'recharts';
-import { ChartContainer, ChartTooltipContent, ChartTooltip } from '@/components/ui/chart';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Line as RechartsLine, LineChart as RechartsLineChart, Pie, PieChart as RechartsPieChart, Cell } from 'recharts';
+import { ChartContainer, ChartTooltipContent, ChartTooltip, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
@@ -41,7 +41,7 @@ const SalesBarChart = ({ data }: { data: { date: string, Total: number }[] }) =>
     };
 
     return (
-        <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+        <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
             <ResponsiveContainer>
                 <BarChart data={data} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                     <CartesianGrid vertical={false} />
@@ -59,7 +59,7 @@ const SalesBarChart = ({ data }: { data: { date: string, Total: number }[] }) =>
                         axisLine={false}
                         tickFormatter={(value) => `R$${value}`}
                     />
-                    <Tooltip
+                    <ChartTooltip
                         cursor={false}
                         content={<ChartTooltipContent
                             formatter={(value) => `R$ ${Number(value).toFixed(2)}`}
@@ -84,7 +84,7 @@ const SalesLineChart = ({ data }: { data: { date: string, Total: number }[] }) =
     };
 
     return (
-        <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+        <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
             <ResponsiveContainer>
                 <RechartsLineChart data={data} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                     <CartesianGrid vertical={false} />
@@ -102,7 +102,7 @@ const SalesLineChart = ({ data }: { data: { date: string, Total: number }[] }) =
                         axisLine={false}
                         tickFormatter={(value) => `R$${value}`}
                     />
-                    <Tooltip
+                    <ChartTooltip
                         cursor={false}
                         content={<ChartTooltipContent
                             formatter={(value) => `R$ ${Number(value).toFixed(2)}`}
@@ -118,6 +118,36 @@ const SalesLineChart = ({ data }: { data: { date: string, Total: number }[] }) =
     );
 }
 
+const SalesPieChart = ({ data }: { data: { name: string, value: number }[] }) => {
+    const chartConfig = {
+        Dinheiro: { label: 'Dinheiro', color: "hsl(var(--chart-1))" },
+        Cartão: { label: 'Cartão', color: "hsl(var(--chart-2))" },
+        PIX: { label: 'PIX', color: "hsl(var(--chart-3))" },
+    };
+
+    return (
+        <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
+            <ResponsiveContainer>
+                <RechartsPieChart>
+                    <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent
+                            formatter={(value, name) => `R$ ${Number(value).toFixed(2)}`}
+                            hideLabel
+                        />}
+                    />
+                    <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={110} labelLine={false} label={({ percent }) => `${(percent * 100).toFixed(0)}%`}>
+                        {data.map((entry, index) => (
+                           <Cell key={`cell-${index}`} fill={chartConfig[entry.name as keyof typeof chartConfig]?.color} />
+                        ))}
+                    </Pie>
+                    <ChartLegend content={<ChartLegendContent nameKey="name" />} />
+                </RechartsPieChart>
+            </ResponsiveContainer>
+        </ChartContainer>
+    );
+}
+
 
 export default function SalesHistory() {
   const { transactions, cashRegisterHistory } = useStore();
@@ -125,7 +155,7 @@ export default function SalesHistory() {
   const [paymentFilter, setPaymentFilter] = useState('all');
   const [operatorFilter, setOperatorFilter] = useState('');
   const [transactionToPrint, setTransactionToPrint] = useState<Transaction | null>(null);
-  const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
+  const [chartType, setChartType] = useState<'bar' | 'line' | 'pie'>('bar');
 
   const handlePrint = (tx: Transaction) => {
     setTransactionToPrint(tx);
@@ -169,6 +199,16 @@ export default function SalesHistory() {
       }))
       .sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [filteredTransactions]);
+
+  const salesByPaymentMethod = useMemo(() => {
+    const summary: { 'Dinheiro': number, 'Cartão': number, 'PIX': number } = { 'Dinheiro': 0, 'Cartão': 0, 'PIX': 0 };
+    filteredTransactions.forEach(tx => {
+        summary[tx.paymentMethod] += tx.total;
+    });
+    return Object.entries(summary)
+        .map(([name, value]) => ({ name, value }))
+        .filter(item => item.value > 0);
+  }, [filteredTransactions]);
   
   const productSummary = useMemo(() => {
     const summary: { [key: string]: { name: string; quantity: number, unit: string } } = {};
@@ -208,6 +248,19 @@ export default function SalesHistory() {
         formattedTime: formatDistanceStrict(0, s.totalMilliseconds, { unit: 'minute', locale: ptBR })
     })).sort((a, b) => b.totalMilliseconds - a.totalMilliseconds);
   }, [cashRegisterHistory]);
+  
+  const renderChart = () => {
+    switch(chartType) {
+        case 'bar':
+            return salesByDay.length > 0 ? <SalesBarChart data={salesByDay} /> : null;
+        case 'line':
+            return salesByDay.length > 0 ? <SalesLineChart data={salesByDay} /> : null;
+        case 'pie':
+            return salesByPaymentMethod.length > 0 ? <SalesPieChart data={salesByPaymentMethod} /> : null;
+        default:
+            return null;
+    }
+  }
 
 
   return (
@@ -220,26 +273,27 @@ export default function SalesHistory() {
             <CardHeader className="flex flex-row items-center justify-between">
                 <div className="space-y-1">
                     <CardTitle className="text-black flex items-center gap-2">
-                        {chartType === 'bar' ? <BarChart2 /> : <LineChart />}
+                        {chartType === 'bar' && <BarChart2 />}
+                        {chartType === 'line' && <LineChart />}
+                        {chartType === 'pie' && <PieChart />}
                         Gráfico de Vendas
                     </CardTitle>
                     <CardDescription className="text-black/80">
-                        Visualização do total de vendas por dia.
+                        Visualização do total de vendas.
                     </CardDescription>
                 </div>
-                <Tabs value={chartType} onValueChange={(value) => setChartType(value as 'bar' | 'line')} className="font-sans">
+                <Tabs value={chartType} onValueChange={(value) => setChartType(value as 'bar' | 'line' | 'pie')} className="font-sans">
                     <TabsList>
                         <TabsTrigger value="bar"><BarChart2 className="mr-2" />Barras</TabsTrigger>
                         <TabsTrigger value="line"><LineChart className="mr-2" />Linhas</TabsTrigger>
+                        <TabsTrigger value="pie"><PieChart className="mr-2" />Pizza</TabsTrigger>
                     </TabsList>
                 </Tabs>
             </CardHeader>
             <CardContent>
-                {salesByDay.length > 0 ? (
-                    chartType === 'bar' ? <SalesBarChart data={salesByDay} /> : <SalesLineChart data={salesByDay} />
-                ) : (
+                {renderChart() ?? (
                     <div className="text-center p-10 text-black/60">
-                        Não há dados de vendas suficientes para exibir o gráfico.
+                        Não há dados suficientes para exibir o gráfico.
                     </div>
                 )}
             </CardContent>
@@ -416,3 +470,5 @@ export default function SalesHistory() {
     </>
   );
 }
+
+    
