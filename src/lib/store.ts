@@ -309,14 +309,25 @@ export const useStore = create<AppState>()(
         const { employees } = get();
         const employee = employees.find(e => e.cod === userCode);
 
-        if (!employee) return false;
-
-        // If employee has a password, it must match.
-        // If employee doesn't have a password, login is allowed without a password.
-        if (employee.password && employee.password !== password) {
+        // 1. Employee not found
+        if (!employee) {
             return false;
         }
 
+        // 2. Employee has a password, and it must match
+        if (employee.password) {
+            if (employee.password !== password) {
+                return false;
+            }
+        } 
+        // 3. Employee does not have a password, so the submitted password must be empty
+        else {
+            if (password) { // If password is not empty or undefined
+                return false;
+            }
+        }
+        
+        // If we get here, login is successful
         const roleName = get().getRoleName(employee.roleId);
         set({ currentUser: { ...employee, roleName }, cart: [] }); // Clear cart on user switch
         return true;
