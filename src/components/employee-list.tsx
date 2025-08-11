@@ -106,6 +106,7 @@ const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null
     const [name, setName] = useState(employee?.name || '');
     const [cod, setCod] = useState(employee?.cod || '');
     const [roleId, setRoleId] = useState(employee?.roleId || roles[0]?.id || '');
+    const [password, setPassword] = useState(employee?.password || '');
     const [cpf, setCpf] = useState(employee?.cpf || '');
     const [rg, setRg] = useState(employee?.rg || '');
     const [phone, setPhone] = useState(employee?.phone || '');
@@ -128,7 +129,24 @@ const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave({ id: employee?.id, name, cod, roleId, cpf, rg, phone, address, admissionDate, salary });
+        const employeeData = { 
+            id: employee?.id, 
+            name, 
+            cod, 
+            roleId, 
+            cpf, 
+            rg, 
+            phone, 
+            address, 
+            admissionDate, 
+            salary,
+            password,
+        };
+        // Only include password if it's not empty, to avoid overwriting existing passwords with empty strings
+        if (!password) {
+            delete (employeeData as Partial<typeof employeeData>).password;
+        }
+        onSave(employeeData);
         onDone();
     };
 
@@ -172,6 +190,10 @@ const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null
                             <div>
                                 <Label htmlFor="name">Nome Completo</Label>
                                 <Input id="name" value={name} onChange={e => setName(e.target.value)} required />
+                            </div>
+                             <div>
+                                <Label htmlFor="password">Senha</Label>
+                                <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder={employee ? "Deixe em branco para não alterar" : ""}/>
                             </div>
                             <div>
                                 <Label htmlFor="cpf">CPF</Label>

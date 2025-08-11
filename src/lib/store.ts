@@ -1,4 +1,5 @@
 
+
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product, CartItem, Transaction, Employee, CashRegisterSession, ThemeSettings, ProductUnit, Supplier, Role } from '@/lib/types';
@@ -61,7 +62,7 @@ const defaultRoles: Role[] = [
     { id: '6', name: 'Administrador', prefix: 'ADM' },
 ]
 
-const APP_STATE_VERSION = 2;
+const APP_STATE_VERSION = 3;
 
 export const useStore = create<AppState>()(
   persist(
@@ -79,8 +80,8 @@ export const useStore = create<AppState>()(
         { id: '1', cod: 'G-001', name: 'Alice', roleId: '1' },
         { id: '2', cod: 'V-001', name: 'Beto', roleId: '2' },
         { id: '3', cod: 'E-001', name: 'Carlos', roleId: '3' },
-        { id: '5', cod: 'S-001', name: 'Fernando', roleId: '5' },
         { id: '4', cod: 'ADM-001', name: 'ADM', roleId: '6' },
+        { id: '5', cod: 'S-001', name: 'Fernando', roleId: '5' },
       ],
        suppliers: [
         { id: '1', cod: 'FOR-001', name: 'Padaria Pão Quente', contactPerson: 'João', phone: '11-98765-4321', email: 'contato@paoquente.com' },
@@ -300,7 +301,7 @@ export const useStore = create<AppState>()(
       updateEmployee: (updatedEmployee) => {
         set((state) => ({
           employees: state.employees.map((e) =>
-            e.id === updatedEmployee.id ? updatedEmployee : e
+            e.id === updatedEmployee.id ? { ...e, ...updatedEmployee } : e
           ),
         }));
       },
@@ -380,20 +381,25 @@ export const useStore = create<AppState>()(
       storage: createJSONStorage(() => localStorage),
       version: APP_STATE_VERSION,
       migrate: (persistedState, version) => {
-        if (version < APP_STATE_VERSION) {
+        const state = persistedState as AppState;
+        if (version < APP_STATE_VERSION || (state && (!state.employees || !state.employees.find(e => e.cod === 'ADM-001')))) {
             // If the persisted state version is older than the current version,
+            // or if the ADM user is missing (indicating an older state structure),
             // we discard the persisted state and use the initial state.
-            // This will effectively "reset" the state on version change.
-            return (useStore.getState());
+            // This will effectively "reset" the state on version change or structural mismatch.
+            const initialState = useStore.getState();
+            return {
+                ...initialState, 
+                // We keep the theme settings from the user
+                theme: state?.theme || initialState.theme
+            };
         }
-        return persistedState as AppState;
+        return state;
       },
       partialize: (state) =>
         Object.fromEntries(
-          Object.entries(state).filter(([key]) => !['currentUser', 'currentCashRegister', 'lastTransaction'].includes(key))
+          Object.entries(state).filter(([key]) => !['currentUser', 'currentCashRegister', 'lastTransaction', 'cart'].includes(key))
         ),
     }
   )
 );
-
-    

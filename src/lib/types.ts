@@ -38,6 +38,7 @@ export interface Employee {
   cod: string;
   name: string;
   roleId: string;
+  password?: string;
   cpf?: string;
   rg?: string;
   phone?: string;
