@@ -27,7 +27,7 @@ import { format, formatDistanceStrict } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Transaction } from '@/lib/types';
 import PrintReceipt from './print-receipt';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Line } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Line as RechartsLine, LineChart as RechartsLineChart } from 'recharts';
 import { ChartContainer, ChartTooltipContent, ChartTooltip } from '@/components/ui/chart';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -86,7 +86,7 @@ const SalesLineChart = ({ data }: { data: { date: string, Total: number }[] }) =
     return (
         <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
             <ResponsiveContainer>
-                <LineChart data={data} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                <RechartsLineChart data={data} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                     <CartesianGrid vertical={false} />
                     <XAxis
                         dataKey="date"
@@ -111,8 +111,8 @@ const SalesLineChart = ({ data }: { data: { date: string, Total: number }[] }) =
                         />}
                     />
                     <Legend />
-                    <Line type="monotone" dataKey="Total" stroke="var(--color-Total)" strokeWidth={2} dot={false} />
-                </LineChart>
+                    <RechartsLine type="monotone" dataKey="Total" stroke="var(--color-Total)" strokeWidth={2} dot={false} />
+                </RechartsLineChart>
             </ResponsiveContainer>
         </ChartContainer>
     );
