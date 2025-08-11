@@ -27,13 +27,17 @@ export interface Transaction {
   cashRegisterSessionId?: string;
 }
 
-export type EmployeeRole = 'Vendedor' | 'Gerente' | 'Estoquista';
+export interface Role {
+    id: string;
+    name: string;
+    prefix: string;
+}
 
 export interface Employee {
   id: string;
   cod: string;
   name: string;
-  role: EmployeeRole;
+  roleId: string;
   cpf?: string;
   rg?: string;
   phone?: string;

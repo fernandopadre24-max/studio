@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
-import type { Employee, EmployeeRole } from '@/lib/types';
+import type { Employee, Role } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,6 +43,7 @@ import { Pen, Trash2, PlusCircle, User, FileText, Briefcase, Eye } from 'lucide-
 import { ScrollArea } from './ui/scroll-area';
 
 const EmployeeDetails = ({ employee }: { employee: Employee }) => {
+    const { getRoleName } = useStore();
     return (
         <ScrollArea className="h-[60vh]">
             <div className="space-y-6 p-4 font-sans">
@@ -55,7 +56,7 @@ const EmployeeDetails = ({ employee }: { employee: Employee }) => {
                         </div>
                         <div>
                             <Label>Cargo</Label>
-                            <p className="font-semibold">{employee.role}</p>
+                            <p className="font-semibold">{getRoleName(employee.roleId)}</p>
                         </div>
                          <div>
                             <Label>Data de Admissão</Label>
@@ -101,9 +102,10 @@ const EmployeeDetails = ({ employee }: { employee: Employee }) => {
 }
 
 const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null, onSave: (e: any) => void, onDone: () => void }) => {
+    const { roles, getNextEmployeeCode } = useStore();
     const [name, setName] = useState(employee?.name || '');
     const [cod, setCod] = useState(employee?.cod || '');
-    const [role, setRole] = useState<EmployeeRole>(employee?.role || 'Vendedor');
+    const [roleId, setRoleId] = useState(employee?.roleId || roles[0]?.id || '');
     const [cpf, setCpf] = useState(employee?.cpf || '');
     const [rg, setRg] = useState(employee?.rg || '');
     const [phone, setPhone] = useState(employee?.phone || '');
@@ -111,24 +113,22 @@ const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null
     const [admissionDate, setAdmissionDate] = useState(employee?.admissionDate || '');
     const [salary, setSalary] = useState(employee?.salary || 0);
 
-    const { getNextEmployeeCode } = useStore();
-
     useEffect(() => {
-        if (!employee) {
-            setCod(getNextEmployeeCode(role));
+        if (!employee && roleId) {
+            setCod(getNextEmployeeCode(roleId));
         }
-    }, [employee, role, getNextEmployeeCode]);
+    }, [employee, roleId, getNextEmployeeCode]);
 
-    const handleRoleChange = (newRole: EmployeeRole) => {
-        setRole(newRole);
+    const handleRoleChange = (newRoleId: string) => {
+        setRoleId(newRoleId);
         if (!employee) { // only update code for new employees
-            setCod(getNextEmployeeCode(newRole));
+            setCod(getNextEmployeeCode(newRoleId));
         }
     }
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave({ id: employee?.id, name, cod, role, cpf, rg, phone, address, admissionDate, salary });
+        onSave({ id: employee?.id, name, cod, roleId, cpf, rg, phone, address, admissionDate, salary });
         onDone();
     };
 
@@ -144,15 +144,15 @@ const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null
                                 <Input id="cod" value={cod} readOnly disabled />
                             </div>
                             <div>
-                                <Label htmlFor="role">Cargo</Label>
-                                <Select value={role} onValueChange={handleRoleChange}>
-                                    <SelectTrigger id="role">
+                                <Label htmlFor="roleId">Cargo</Label>
+                                <Select value={roleId} onValueChange={handleRoleChange}>
+                                    <SelectTrigger id="roleId">
                                         <SelectValue placeholder="Selecione o cargo" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Vendedor">Vendedor</SelectItem>
-                                        <SelectItem value="Gerente">Gerente</SelectItem>
-                                        <SelectItem value="Estoquista">Estoquista</SelectItem>
+                                        {roles.map(role => (
+                                            <SelectItem key={role.id} value={role.id}>{role.name}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -207,7 +207,7 @@ const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null
 }
 
 export default function EmployeeList() {
-  const { employees, addEmployee, updateEmployee, deleteEmployee } = useStore();
+  const { employees, addEmployee, updateEmployee, deleteEmployee, getRoleName } = useStore();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
@@ -262,7 +262,7 @@ export default function EmployeeList() {
               <TableRow key={employee.id} onDoubleClick={() => openDialogForView(employee)} className="border-dashed border-black/20 cursor-pointer">
                 <TableCell className="font-mono">{employee.cod}</TableCell>
                 <TableCell className="font-medium">{employee.name}</TableCell>
-                <TableCell>{employee.role}</TableCell>
+                <TableCell>{getRoleName(employee.roleId)}</TableCell>
                 <TableCell className="text-right">
                   <Button variant="ghost" size="icon" className="text-black hover:bg-black/10" onClick={() => openDialogForEdit(employee)}>
                     <Pen className="h-4 w-4" />
@@ -306,4 +306,3 @@ export default function EmployeeList() {
     </Card>
   );
 }
-

@@ -13,12 +13,11 @@ import SalesHistory from '@/components/sales-history';
 import EmployeeList from '@/components/employee-list';
 import SupplierList from '@/components/supplier-list';
 import SettingsPage from '@/components/settings';
-import type { Employee } from '@/lib/types';
 
 type NavItem = 'Caixa' | 'Produtos' | 'Fornecedores' | 'Relatórios' | 'Funcionários' | 'Configurações';
 
 function UserSelectionScreen() {
-    const { employees, setCurrentUser } = useStore();
+    const { employees, setCurrentUser, getRoleName } = useStore();
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-muted/40">
@@ -38,7 +37,7 @@ function UserSelectionScreen() {
                             <User className="h-5 w-5" />
                             <div className="text-left">
                                 <div>{employee.cod} - {employee.name}</div>
-                                <div className="text-xs text-muted-foreground">{employee.role}</div>
+                                <div className="text-xs text-muted-foreground">{getRoleName(employee.roleId)}</div>
                             </div>
                         </Button>
                     ))}
@@ -58,8 +57,9 @@ export default function Home() {
   }, []);
   
   useEffect(() => {
+    if (!currentUser) return;
     // Reset to 'Caixa' if user has permission, otherwise to 'Produtos'
-    if (currentUser?.role === 'Vendedor' || currentUser?.role === 'Gerente') {
+    if (currentUser.roleName === 'Vendedor' || currentUser.roleName === 'Gerente' || currentUser.roleName === 'Caixa' || currentUser.roleName === 'Supervisor') {
       setActiveNav('Caixa');
     } else {
       setActiveNav('Produtos');
@@ -90,10 +90,10 @@ export default function Home() {
     }
   };
   
-  const hasCashierAccess = currentUser?.role === 'Vendedor' || currentUser?.role === 'Gerente';
-  const hasEmployeeAccess = currentUser?.role === 'Gerente';
-  const hasSettingsAccess = currentUser?.role === 'Gerente';
-  const hasSupplierAccess = currentUser?.role === 'Gerente' || currentUser?.role === 'Estoquista';
+  const hasCashierAccess = currentUser?.roleName === 'Vendedor' || currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Caixa' || currentUser?.roleName === 'Supervisor';
+  const hasEmployeeAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Supervisor';
+  const hasSettingsAccess = currentUser?.roleName === 'Gerente';
+  const hasSupplierAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Estoquista' || currentUser?.roleName === 'Supervisor';
 
 
   if (!isClient) {
@@ -162,7 +162,7 @@ export default function Home() {
         <div className='space-y-2'>
             <div className='p-3 rounded-md bg-secondary text-secondary-foreground text-sm'>
                 <p className='font-bold'>{currentUser.cod} - {currentUser.name}</p>
-                <p className='text-xs'>{currentUser.role}</p>
+                <p className='text-xs'>{currentUser.roleName}</p>
             </div>
             <Button variant="outline" className="w-full justify-start" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" /> Trocar Usuário

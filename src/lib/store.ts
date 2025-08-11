@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Product, CartItem, Transaction, Employee, CashRegisterSession, ThemeSettings, ProductUnit, EmployeeRole, Supplier } from '@/lib/types';
+import type { Product, CartItem, Transaction, Employee, CashRegisterSession, ThemeSettings, ProductUnit, Supplier, Role } from '@/lib/types';
 
 interface AppState {
   products: Product[];
@@ -10,7 +10,8 @@ interface AppState {
   lastTransaction: Transaction | null;
   employees: Employee[];
   suppliers: Supplier[];
-  currentUser: Employee | null;
+  roles: Role[];
+  currentUser: (Employee & { roleName: string }) | null;
   cashRegisterHistory: CashRegisterSession[];
   currentCashRegister: CashRegisterSession | null;
   theme: ThemeSettings,
@@ -20,6 +21,9 @@ interface AppState {
   addSupplier: (supplier: Omit<Supplier, 'id' | 'cod'>) => void;
   updateSupplier: (supplier: Supplier) => void;
   deleteSupplier: (supplierId: string) => void;
+  addRole: (role: Omit<Role, 'id'>) => void;
+  updateRole: (role: Role) => void;
+  deleteRole: (roleId: string) => void;
   addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: string) => void;
   updateCartItemQuantity: (productId: string, quantity: number) => void;
@@ -34,15 +38,25 @@ interface AppState {
   setTheme: (theme: Partial<ThemeSettings>) => void;
   findProductByCode: (code: string) => Product | undefined;
   getNextProductCode: () => string;
-  getNextEmployeeCode: (role: EmployeeRole) => string;
+  getNextEmployeeCode: (roleId: string) => string;
   getNextSupplierCode: () => string;
   setLastTransaction: (transaction: Transaction | null) => void;
+  getRoleName: (roleId: string) => string;
+  canDeleteRole: (roleId: string) => boolean;
 }
 
 const defaultTheme: ThemeSettings = {
     primaryColor: { h: 262, s: 83, l: 58 }, // Default HSL for primary color
     fontFamily: 'font-inter', // Default font
 };
+
+const defaultRoles: Role[] = [
+    { id: '1', name: 'Gerente', prefix: 'G' },
+    { id: '2', name: 'Vendedor', prefix: 'V' },
+    { id: '3', name: 'Estoquista', prefix: 'E' },
+    { id: '4', name: 'Caixa', prefix: 'C' },
+    { id: '5', name: 'Supervisor', prefix: 'S' },
+]
 
 export const useStore = create<AppState>()(
   persist(
@@ -56,18 +70,27 @@ export const useStore = create<AppState>()(
       transactions: [],
       lastTransaction: null,
       employees: [
-        { id: '1', cod: 'G-001', name: 'Alice', role: 'Gerente' },
-        { id: '2', cod: 'V-001', name: 'Beto', role: 'Vendedor' },
-        { id: '3', cod: 'E-001', name: 'Carlos', role: 'Estoquista' },
+        { id: '1', cod: 'G-001', name: 'Alice', roleId: '1' },
+        { id: '2', cod: 'V-001', name: 'Beto', roleId: '2' },
+        { id: '3', cod: 'E-001', name: 'Carlos', roleId: '3' },
       ],
        suppliers: [
         { id: '1', cod: 'FOR-001', name: 'Padaria Pão Quente', contactPerson: 'João', phone: '11-98765-4321', email: 'contato@paoquente.com' },
         { id: '2', cod: 'FOR-002', name: 'Doce Sabor Confeitaria', contactPerson: 'Maria', phone: '11-91234-5678', email: 'vendas@docesabor.com' },
       ],
+      roles: defaultRoles,
       currentUser: null,
       cashRegisterHistory: [],
       currentCashRegister: null,
       theme: defaultTheme,
+
+      getRoleName: (roleId) => {
+          return get().roles.find(r => r.id === roleId)?.name || 'N/A';
+      },
+      
+      canDeleteRole: (roleId) => {
+          return !get().employees.some(e => e.roleId === roleId);
+      },
 
       getNextProductCode: () => {
         const { products } = get();
@@ -78,16 +101,14 @@ export const useStore = create<AppState>()(
         return `PROD-${(maxCode + 1).toString().padStart(4, '0')}`;
       },
 
-      getNextEmployeeCode: (role: EmployeeRole) => {
-        const { employees } = get();
-        const prefixMap: Record<EmployeeRole, string> = {
-          'Gerente': 'G',
-          'Vendedor': 'V',
-          'Estoquista': 'E'
-        };
-        const prefix = prefixMap[role];
+      getNextEmployeeCode: (roleId: string) => {
+        const { employees, roles } = get();
+        const role = roles.find(r => r.id === roleId);
+        if (!role) return 'ERROR-000';
+
+        const prefix = role.prefix;
         
-        const roleEmployees = employees.filter(e => e.role === role);
+        const roleEmployees = employees.filter(e => e.cod.startsWith(`${prefix}-`));
         const maxCode = roleEmployees.reduce((max, e) => {
             const codeNum = parseInt(e.cod.split('-')[1]);
             return codeNum > max ? codeNum : max;
@@ -148,6 +169,27 @@ export const useStore = create<AppState>()(
       deleteSupplier: (supplierId) => {
         set((state) => ({
           suppliers: state.suppliers.filter((s) => s.id !== supplierId),
+        }));
+      },
+      
+      addRole: (roleData) => {
+        const newRole: Role = {
+            ...roleData,
+            id: new Date().toISOString(),
+        }
+        set((state) => ({ roles: [...state.roles, newRole] }));
+      },
+      updateRole: (updatedRole) => {
+        set((state) => ({
+          roles: state.roles.map((r) =>
+            r.id === updatedRole.id ? updatedRole : r
+          ),
+        }));
+      },
+      deleteRole: (roleId) => {
+        if (!get().canDeleteRole(roleId)) return;
+        set((state) => ({
+          roles: state.roles.filter((r) => r.id !== roleId),
         }));
       },
 
@@ -261,7 +303,12 @@ export const useStore = create<AppState>()(
       },
       
       setCurrentUser: (employee) => {
-        set({ currentUser: employee, cart: [] }); // Clear cart on user switch
+        if (!employee) {
+             set({ currentUser: null, cart: [] });
+             return;
+        }
+        const roleName = get().getRoleName(employee.roleId);
+        set({ currentUser: { ...employee, roleName }, cart: [] }); // Clear cart on user switch
       },
 
       openCashRegister: (openingBalance) => {
