@@ -59,7 +59,7 @@ export default function Home() {
   useEffect(() => {
     if (!currentUser) return;
     // Reset to 'Caixa' if user has permission, otherwise to 'Produtos'
-    if (currentUser.roleName === 'Vendedor' || currentUser.roleName === 'Gerente' || currentUser.roleName === 'Caixa' || currentUser.roleName === 'Supervisor') {
+    if (currentUser.roleName === 'Vendedor' || currentUser.roleName === 'Gerente' || currentUser.roleName === 'Caixa' || currentUser.roleName === 'Supervisor' || currentUser.roleName === 'Administrador') {
       setActiveNav('Caixa');
     } else {
       setActiveNav('Produtos');
@@ -90,10 +90,10 @@ export default function Home() {
     }
   };
   
-  const hasCashierAccess = currentUser?.roleName === 'Vendedor' || currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Caixa' || currentUser?.roleName === 'Supervisor';
-  const hasEmployeeAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Supervisor';
-  const hasSettingsAccess = currentUser?.roleName === 'Gerente';
-  const hasSupplierAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Estoquista' || currentUser?.roleName === 'Supervisor';
+  const hasCashierAccess = currentUser?.roleName === 'Vendedor' || currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Caixa' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
+  const hasEmployeeAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
+  const hasSettingsAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Administrador';
+  const hasSupplierAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Estoquista' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
 
 
   if (!isClient) {

@@ -56,6 +56,7 @@ const defaultRoles: Role[] = [
     { id: '3', name: 'Estoquista', prefix: 'E' },
     { id: '4', name: 'Caixa', prefix: 'C' },
     { id: '5', name: 'Supervisor', prefix: 'S' },
+    { id: '6', name: 'Administrador', prefix: 'ADM' },
 ]
 
 export const useStore = create<AppState>()(
@@ -73,6 +74,7 @@ export const useStore = create<AppState>()(
         { id: '1', cod: 'G-001', name: 'Alice', roleId: '1' },
         { id: '2', cod: 'V-001', name: 'Beto', roleId: '2' },
         { id: '3', cod: 'E-001', name: 'Carlos', roleId: '3' },
+        { id: '4', cod: 'ADM-001', name: 'Admin', roleId: '6' },
       ],
        suppliers: [
         { id: '1', cod: 'FOR-001', name: 'Padaria Pão Quente', contactPerson: 'João', phone: '11-98765-4321', email: 'contato@paoquente.com' },

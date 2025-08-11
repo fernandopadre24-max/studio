@@ -425,7 +425,7 @@ export default function Checkout() {
                                 variant="destructive" 
                                 size="sm" 
                                 className="font-sans"
-                                disabled={ (currentUser?.roleName !== 'Gerente' && currentUser?.roleName !== 'Vendedor' && currentUser?.roleName !== 'Caixa' && currentUser?.roleName !== 'Supervisor' ) || cart.length > 0}>
+                                disabled={ (currentUser?.roleName !== 'Gerente' && currentUser?.roleName !== 'Vendedor' && currentUser?.roleName !== 'Caixa' && currentUser?.roleName !== 'Supervisor' && currentUser?.roleName !== 'Administrador' ) || cart.length > 0}>
                                 <XCircle className="mr-2 h-4 w-4" /> Fechar Caixa
                             </Button>
                         </DialogTrigger>
