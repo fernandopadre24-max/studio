@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { LayoutDashboard, ShoppingCart, Package, BarChart, Users, LogOut, User, Settings, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/lib/store';
 import Checkout from '@/components/checkout';
@@ -13,42 +13,73 @@ import SalesHistory from '@/components/sales-history';
 import EmployeeList from '@/components/employee-list';
 import SupplierList from '@/components/supplier-list';
 import SettingsPage from '@/components/settings';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 type NavItem = 'Caixa' | 'Produtos' | 'Fornecedores' | 'Relatórios' | 'Funcionários' | 'Configurações';
 
-function UserSelectionScreen() {
-    const { employees, setCurrentUser, getRoleName } = useStore();
+function LoginScreen() {
+    const { login } = useStore();
+    const { toast } = useToast();
+    const [userCode, setUserCode] = useState('');
+    const [password, setPassword] = useState('');
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const success = login(userCode, password);
+        if (!success) {
+            toast({
+                variant: 'destructive',
+                title: 'Erro de Login',
+                description: 'Código de usuário ou senha incorretos.',
+            });
+        }
+    };
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-muted/40">
             <Card className="w-full max-w-sm">
-                <CardHeader>
-                    <CardTitle>Bem-vindo ao PDV</CardTitle>
-                    <CardDescription>Selecione seu usuário para começar</CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-2">
-                    {employees.map(employee => (
-                        <Button
-                            key={employee.id}
-                            variant="outline"
-                            className="justify-start gap-3 p-6"
-                            onClick={() => setCurrentUser(employee)}
-                        >
-                            <User className="h-5 w-5" />
-                            <div className="text-left">
-                                <div>{employee.cod} - {employee.name}</div>
-                                <div className="text-xs text-muted-foreground">{getRoleName(employee.roleId)}</div>
-                            </div>
+                <form onSubmit={handleSubmit}>
+                    <CardHeader>
+                        <CardTitle>Bem-vindo ao PDV</CardTitle>
+                        <CardDescription>Faça login para começar</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="userCode">Código do Usuário</Label>
+                            <Input
+                                id="userCode"
+                                value={userCode}
+                                onChange={(e) => setUserCode(e.target.value)}
+                                required
+                                placeholder="ex: ADM-001"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="password">Senha</Label>
+                            <Input
+                                id="password"
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                        </div>
+                    </CardContent>
+                    <CardFooter>
+                        <Button type="submit" className="w-full">
+                            Entrar
                         </Button>
-                    ))}
-                </CardContent>
+                    </CardFooter>
+                </form>
             </Card>
         </div>
     );
 }
 
 export default function Home() {
-  const { currentUser, setCurrentUser, clearCart } = useStore();
+  const { currentUser, logout, clearCart } = useStore();
   const [activeNav, setActiveNav] = useState<NavItem>('Caixa');
   const [isClient, setIsClient] = useState(false);
 
@@ -68,7 +99,7 @@ export default function Home() {
 
   const handleLogout = () => {
     clearCart();
-    setCurrentUser(null);
+    logout();
   };
 
   const renderContent = () => {
@@ -105,7 +136,7 @@ export default function Home() {
   }
 
   if (!currentUser) {
-    return <UserSelectionScreen />;
+    return <LoginScreen />;
   }
 
   return (

@@ -32,7 +32,8 @@ interface AppState {
   addEmployee: (employee: Omit<Employee, 'id'>) => void;
   updateEmployee: (employee: Employee) => void;
   deleteEmployee: (employeeId: string) => void;
-  setCurrentUser: (employee: Employee | null) => void;
+  login: (userCode: string, password?: string) => boolean;
+  logout: () => void;
   openCashRegister: (openingBalance: number) => void;
   closeCashRegister: () => void;
   setTheme: (theme: Partial<ThemeSettings>) => void;
@@ -74,7 +75,7 @@ export const useStore = create<AppState>()(
         { id: '1', cod: 'G-001', name: 'Alice', roleId: '1' },
         { id: '2', cod: 'V-001', name: 'Beto', roleId: '2' },
         { id: '3', cod: 'E-001', name: 'Carlos', roleId: '3' },
-        { id: '4', cod: 'ADM-001', name: 'Admin', roleId: '6' },
+        { id: '4', cod: 'ADM-001', name: 'Admin', roleId: '6', password: '2026' },
       ],
        suppliers: [
         { id: '1', cod: 'FOR-001', name: 'Padaria Pão Quente', contactPerson: 'João', phone: '11-98765-4321', email: 'contato@paoquente.com' },
@@ -304,13 +305,25 @@ export const useStore = create<AppState>()(
         }));
       },
       
-      setCurrentUser: (employee) => {
-        if (!employee) {
-             set({ currentUser: null, cart: [] });
-             return;
+      login: (userCode, password) => {
+        const { employees } = get();
+        const employee = employees.find(e => e.cod === userCode);
+
+        if (!employee) return false;
+
+        // If employee has a password, it must match.
+        // If employee has no password, any password (or none) is fine for now.
+        if (employee.password && employee.password !== password) {
+            return false;
         }
+
         const roleName = get().getRoleName(employee.roleId);
         set({ currentUser: { ...employee, roleName }, cart: [] }); // Clear cart on user switch
+        return true;
+      },
+
+      logout: () => {
+        set({ currentUser: null, cart: [] });
       },
 
       openCashRegister: (openingBalance) => {

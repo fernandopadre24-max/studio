@@ -39,7 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Pen, Trash2, PlusCircle, User, FileText, Briefcase, Eye } from 'lucide-react';
+import { Pen, Trash2, PlusCircle, User, FileText, Briefcase, Eye, KeyRound } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 
 const EmployeeDetails = ({ employee }: { employee: Employee }) => {
@@ -106,6 +106,7 @@ const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null
     const [name, setName] = useState(employee?.name || '');
     const [cod, setCod] = useState(employee?.cod || '');
     const [roleId, setRoleId] = useState(employee?.roleId || roles[0]?.id || '');
+    const [password, setPassword] = useState(employee?.password || '');
     const [cpf, setCpf] = useState(employee?.cpf || '');
     const [rg, setRg] = useState(employee?.rg || '');
     const [phone, setPhone] = useState(employee?.phone || '');
@@ -128,7 +129,7 @@ const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave({ id: employee?.id, name, cod, roleId, cpf, rg, phone, address, admissionDate, salary });
+        onSave({ id: employee?.id, name, cod, roleId, password, cpf, rg, phone, address, admissionDate, salary });
         onDone();
     };
 
@@ -192,6 +193,13 @@ const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null
                         <div>
                             <Label htmlFor="address">Endereço Completo</Label>
                             <Input id="address" value={address} onChange={e => setAddress(e.target.value)} placeholder="Rua, Nº, Bairro, Cidade - Estado, CEP"/>
+                        </div>
+                    </div>
+                     <div className="space-y-4">
+                        <h3 className="text-lg font-medium flex items-center gap-2"><KeyRound size={20} /> Acesso ao Sistema</h3>
+                        <div>
+                            <Label htmlFor="password">Senha</Label>
+                            <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Deixe em branco para não alterar"/>
                         </div>
                     </div>
                 </div>
