@@ -46,7 +46,7 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
     const [price, setPrice] = useState(product?.price || 0);
     const [stock, setStock] = useState(product?.stock || 0);
     const [unit, setUnit] = useState<ProductUnit>(product?.unit || 'UN');
-    const [supplierId, setSupplierId] = useState(product?.supplierId || '');
+    const [supplierId, setSupplierId] = useState(product?.supplierId || 'none');
     
     const { getNextProductCode, suppliers } = useStore();
 
@@ -58,7 +58,7 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave({ id: product?.id, name, cod, price, stock, unit, supplierId });
+        onSave({ id: product?.id, name, cod, price, stock, unit, supplierId: supplierId === 'none' ? undefined : supplierId });
         onDone();
     };
 
@@ -99,7 +99,7 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
                         <SelectValue placeholder="Selecione o fornecedor"/>
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">Nenhum</SelectItem>
+                        <SelectItem value="none">Nenhum</SelectItem>
                         {suppliers.map(supplier => (
                             <SelectItem key={supplier.id} value={supplier.id}>
                                 {supplier.cod} - {supplier.name}
