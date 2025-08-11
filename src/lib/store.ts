@@ -313,11 +313,19 @@ export const useStore = create<AppState>()(
             return false;
         }
 
-        const storedPassword = employee.password || '';
-        const enteredPassword = password || '';
+        const storedPassword = employee.password;
+        const enteredPassword = password;
 
-        if (storedPassword !== enteredPassword) {
-            return false;
+        // If stored password is set, entered password must match.
+        // If stored password is not set (undefined), entered password must be empty ('').
+        if (storedPassword) {
+            if (storedPassword !== enteredPassword) {
+                return false;
+            }
+        } else {
+            if (enteredPassword) { // If user entered a password for an account that doesn't have one
+                return false;
+            }
         }
         
         const roleName = get().getRoleName(employee.roleId);
