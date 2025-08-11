@@ -20,15 +20,20 @@ export default function Home() {
 
   useEffect(() => {
     setIsClient(true);
-    if (!currentUser) {
-        // Use a static user code to avoid dependency issues with login function
-        useStore.getState().login('ADM-001');
+    // This should run only once to log in the default user if no one is logged in.
+    if (!useStore.getState().currentUser) {
+      useStore.getState().login('ADM-001');
     }
-  }, [currentUser]);
+  }, []);
   
   useEffect(() => {
     if (!currentUser) return;
-    if (currentUser.roleName === 'Vendedor' || currentUser.roleName === 'Gerente' || currentUser.roleName === 'Caixa' || currentUser.roleName === 'Supervisor' || currentUser.roleName === 'Administrador') {
+
+    const isAdminOrManager = currentUser.roleName === 'Gerente' || currentUser.roleName === 'Administrador';
+
+    if (isAdminOrManager) {
+        setActiveNav('Caixa');
+    } else if (currentUser.roleName === 'Vendedor' || currentUser.roleName === 'Caixa' || currentUser.roleName === 'Supervisor') {
       setActiveNav('Caixa');
     } else {
       setActiveNav('Produtos');
