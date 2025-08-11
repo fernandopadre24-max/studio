@@ -309,27 +309,19 @@ export const useStore = create<AppState>()(
         const { employees } = get();
         const employee = employees.find(e => e.cod === userCode);
 
-        // 1. Employee not found
         if (!employee) {
             return false;
         }
 
-        // 2. Employee has a password, and it must match
-        if (employee.password) {
-            if (employee.password !== password) {
-                return false;
-            }
-        } 
-        // 3. Employee does not have a password, so the submitted password must be empty
-        else {
-            if (password) { // If password is not empty or undefined
-                return false;
-            }
+        const storedPassword = employee.password || '';
+        const enteredPassword = password || '';
+
+        if (storedPassword !== enteredPassword) {
+            return false;
         }
         
-        // If we get here, login is successful
         const roleName = get().getRoleName(employee.roleId);
-        set({ currentUser: { ...employee, roleName }, cart: [] }); // Clear cart on user switch
+        set({ currentUser: { ...employee, roleName }, cart: [] });
         return true;
       },
 
@@ -394,3 +386,5 @@ export const useStore = create<AppState>()(
     }
   )
 );
+
+    
