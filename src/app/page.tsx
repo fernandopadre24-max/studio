@@ -17,50 +17,18 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
-type NavItem = 'Caixa' | 'Produtos' | 'Fornecedores' | 'Relatórios' | 'Funcionários' | 'Configurações';
-
-function UserSelectionScreen() {
-    const { employees, login, getRoleName } = useStore();
-    return (
-        <div className="flex min-h-screen items-center justify-center bg-muted/40">
-            <Card className="w-full max-w-2xl">
-                <CardHeader>
-                    <CardTitle>Bem-vindo ao PDV</CardTitle>
-                    <CardDescription>Selecione um usuário para começar</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <ScrollArea className="h-[60vh]">
-                        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-                            {employees.map(employee => (
-                                <button
-                                    key={employee.id}
-                                    onClick={() => login(employee.cod)}
-                                    className="flex flex-col items-center justify-center gap-3 rounded-lg border p-4 text-center transition-all hover:bg-accent hover:text-accent-foreground"
-                                >
-                                    <Avatar className="h-16 w-16">
-                                        <AvatarImage src={`https://i.pravatar.cc/150?u=${employee.id}`} />
-                                        <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="text-sm font-medium">{employee.name}</div>
-                                    <div className="text-xs text-muted-foreground">{getRoleName(employee.roleId)}</div>
-                                </button>
-                            ))}
-                        </div>
-                    </ScrollArea>
-                </CardContent>
-            </Card>
-        </div>
-    );
-}
-
 export default function Home() {
-  const { currentUser, logout, clearCart } = useStore();
+  const { currentUser, logout, clearCart, login } = useStore();
   const [activeNav, setActiveNav] = useState<NavItem>('Caixa');
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    // Auto-login as admin
+    if (!currentUser) {
+        login('ADM-001');
+    }
+  }, [currentUser, login]);
   
   useEffect(() => {
     if (!currentUser) return;
@@ -102,16 +70,12 @@ export default function Home() {
   const hasSupplierAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Estoquista' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
 
 
-  if (!isClient) {
+  if (!isClient || !currentUser) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-2xl font-semibold">Carregando...</div>
       </div>
     );
-  }
-
-  if (!currentUser) {
-    return <UserSelectionScreen />;
   }
 
   return (
@@ -170,9 +134,11 @@ export default function Home() {
                 <p className='font-bold'>{currentUser.cod} - {currentUser.name}</p>
                 <p className='text-xs'>{currentUser.roleName}</p>
             </div>
+            {/* Ocultando botão de logout para ter um usuário fixo
             <Button variant="outline" className="w-full justify-start" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" /> Trocar Usuário
             </Button>
+            */}
         </div>
       </aside>
       <main className="flex-1 p-4 sm:p-8">
@@ -183,6 +149,8 @@ export default function Home() {
     </div>
   );
 }
+
+type NavItem = 'Caixa' | 'Produtos' | 'Fornecedores' | 'Relatórios' | 'Funcionários' | 'Configurações';
 
 interface NavItemButtonProps {
     label: string;
