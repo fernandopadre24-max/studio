@@ -75,7 +75,7 @@ export const useStore = create<AppState>()(
         { id: '1', cod: 'G-001', name: 'Alice', roleId: '1' },
         { id: '2', cod: 'V-001', name: 'Beto', roleId: '2' },
         { id: '3', cod: 'E-001', name: 'Carlos', roleId: '3' },
-        { id: '4', cod: 'ADM-001', name: 'Admin', roleId: '6' },
+        { id: '4', cod: 'ADM-001', name: 'ADM', roleId: '6' },
       ],
        suppliers: [
         { id: '1', cod: 'FOR-001', name: 'Padaria Pão Quente', contactPerson: 'João', phone: '11-98765-4321', email: 'contato@paoquente.com' },
@@ -305,14 +305,14 @@ export const useStore = create<AppState>()(
         }));
       },
       
-      login: (userCode: string) => {
+      login: (userCode) => {
         const { employees } = get();
-        const employee = employees.find(e => e.cod === userCode);
+        const employee = employees.find((e) => e.cod === userCode);
 
         if (!employee) {
-            return false;
+          return false;
         }
-        
+
         const roleName = get().getRoleName(employee.roleId);
         set({ currentUser: { ...employee, roleName }, cart: [] });
         return true;
