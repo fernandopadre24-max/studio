@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
-import type { Product, ProductUnit } from '@/lib/types';
+import type { Product, ProductUnit, Supplier } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -46,7 +46,9 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
     const [price, setPrice] = useState(product?.price || 0);
     const [stock, setStock] = useState(product?.stock || 0);
     const [unit, setUnit] = useState<ProductUnit>(product?.unit || 'UN');
-    const { getNextProductCode } = useStore();
+    const [supplierId, setSupplierId] = useState(product?.supplierId || '');
+    
+    const { getNextProductCode, suppliers } = useStore();
 
     useEffect(() => {
         if (!product) {
@@ -56,7 +58,7 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave({ id: product?.id, name, cod, price, stock, unit });
+        onSave({ id: product?.id, name, cod, price, stock, unit, supplierId });
         onDone();
     };
 
@@ -90,6 +92,22 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
                     </Select>
                 </div>
             </div>
+             <div>
+                <Label htmlFor="supplierId">Fornecedor</Label>
+                <Select value={supplierId} onValueChange={setSupplierId}>
+                    <SelectTrigger id="supplierId">
+                        <SelectValue placeholder="Selecione o fornecedor"/>
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="">Nenhum</SelectItem>
+                        {suppliers.map(supplier => (
+                            <SelectItem key={supplier.id} value={supplier.id}>
+                                {supplier.cod} - {supplier.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
             <div>
                 <Label htmlFor="stock">Estoque</Label>
                 <Input id="stock" type="number" step="0.001" value={stock} onChange={e => setStock(parseFloat(e.target.value))} required />
@@ -105,7 +123,7 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
 }
 
 export default function ProductList() {
-  const { products, addProduct, updateProduct, deleteProduct } = useStore();
+  const { products, addProduct, updateProduct, deleteProduct, suppliers } = useStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
@@ -125,6 +143,12 @@ export default function ProductList() {
   const openDialogForNew = () => {
     setEditingProduct(null);
     setIsDialogOpen(true);
+  }
+  
+  const getSupplierName = (supplierId?: string) => {
+    if(!supplierId) return 'N/A';
+    const supplier = suppliers.find(s => s.id === supplierId);
+    return supplier?.name || 'Desconhecido';
   }
 
   return (
@@ -158,6 +182,7 @@ export default function ProductList() {
             <TableRow>
               <TableHead>Código</TableHead>
               <TableHead>Nome</TableHead>
+              <TableHead>Fornecedor</TableHead>
               <TableHead>Preço</TableHead>
               <TableHead>Estoque</TableHead>
               <TableHead className="text-right">Ações</TableHead>
@@ -168,6 +193,7 @@ export default function ProductList() {
               <TableRow key={product.id}>
                 <TableCell className="font-mono">{product.cod}</TableCell>
                 <TableCell className="font-medium">{product.name}</TableCell>
+                <TableCell>{getSupplierName(product.supplierId)}</TableCell>
                 <TableCell>R$ {product.price.toFixed(2)} / {product.unit}</TableCell>
                 <TableCell>{product.stock}</TableCell>
                 <TableCell className="text-right">

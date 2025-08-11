@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, ShoppingCart, Package, BarChart, Users, LogOut, User, Settings } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Package, BarChart, Users, LogOut, User, Settings, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -11,10 +11,11 @@ import Checkout from '@/components/checkout';
 import ProductList from '@/components/product-list';
 import SalesHistory from '@/components/sales-history';
 import EmployeeList from '@/components/employee-list';
+import SupplierList from '@/components/supplier-list';
 import SettingsPage from '@/components/settings';
 import type { Employee } from '@/lib/types';
 
-type NavItem = 'Caixa' | 'Produtos' | 'Relatórios' | 'Funcionários' | 'Configurações';
+type NavItem = 'Caixa' | 'Produtos' | 'Fornecedores' | 'Relatórios' | 'Funcionários' | 'Configurações';
 
 function UserSelectionScreen() {
     const { employees, setCurrentUser } = useStore();
@@ -76,6 +77,8 @@ export default function Home() {
         return <Checkout />;
       case 'Produtos':
         return <ProductList />;
+      case 'Fornecedores':
+        return <SupplierList />;
       case 'Relatórios':
         return <SalesHistory />;
       case 'Funcionários':
@@ -90,6 +93,7 @@ export default function Home() {
   const hasCashierAccess = currentUser?.role === 'Vendedor' || currentUser?.role === 'Gerente';
   const hasEmployeeAccess = currentUser?.role === 'Gerente';
   const hasSettingsAccess = currentUser?.role === 'Gerente';
+  const hasSupplierAccess = currentUser?.role === 'Gerente' || currentUser?.role === 'Estoquista';
 
 
   if (!isClient) {
@@ -125,6 +129,13 @@ export default function Home() {
               icon={Package}
               isActive={activeNav === 'Produtos'}
               onClick={() => setActiveNav('Produtos')}
+            />
+            <NavItemButton
+              label="Fornecedores"
+              icon={Truck}
+              isActive={activeNav === 'Fornecedores'}
+              onClick={() => setActiveNav('Fornecedores')}
+              disabled={!hasSupplierAccess}
             />
             <NavItemButton
               label="Relatórios"

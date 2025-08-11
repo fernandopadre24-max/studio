@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Product, CartItem, Transaction, Employee, CashRegisterSession, ThemeSettings, ProductUnit, EmployeeRole } from '@/lib/types';
+import type { Product, CartItem, Transaction, Employee, CashRegisterSession, ThemeSettings, ProductUnit, EmployeeRole, Supplier } from '@/lib/types';
 
 interface AppState {
   products: Product[];
@@ -9,6 +9,7 @@ interface AppState {
   transactions: Transaction[];
   lastTransaction: Transaction | null;
   employees: Employee[];
+  suppliers: Supplier[];
   currentUser: Employee | null;
   cashRegisterHistory: CashRegisterSession[];
   currentCashRegister: CashRegisterSession | null;
@@ -16,6 +17,9 @@ interface AppState {
   addProduct: (product: Omit<Product, 'id' | 'cod'>) => void;
   updateProduct: (product: Product) => void;
   deleteProduct: (productId: string) => void;
+  addSupplier: (supplier: Omit<Supplier, 'id' | 'cod'>) => void;
+  updateSupplier: (supplier: Supplier) => void;
+  deleteSupplier: (supplierId: string) => void;
   addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: string) => void;
   updateCartItemQuantity: (productId: string, quantity: number) => void;
@@ -31,6 +35,7 @@ interface AppState {
   findProductByCode: (code: string) => Product | undefined;
   getNextProductCode: () => string;
   getNextEmployeeCode: (role: EmployeeRole) => string;
+  getNextSupplierCode: () => string;
   setLastTransaction: (transaction: Transaction | null) => void;
 }
 
@@ -43,9 +48,9 @@ export const useStore = create<AppState>()(
   persist(
     (set, get) => ({
       products: [
-        { id: '1', cod: '7891000315507', name: 'Café Expresso', price: 5.0, stock: 100, unit: 'UN' },
-        { id: '2', cod: '7891000051019', name: 'Pão de Queijo', price: 25.0, stock: 5, unit: 'KG' },
-        { id: '3', cod: '7896024921028', name: 'Bolo de Fubá', price: 7.0, stock: 30, unit: 'UN' },
+        { id: '1', cod: '7891000315507', name: 'Café Expresso', price: 5.0, stock: 100, unit: 'UN', supplierId: '1' },
+        { id: '2', cod: '7891000051019', name: 'Pão de Queijo', price: 25.0, stock: 5, unit: 'KG', supplierId: '1' },
+        { id: '3', cod: '7896024921028', name: 'Bolo de Fubá', price: 7.0, stock: 30, unit: 'UN', supplierId: '2' },
       ],
       cart: [],
       transactions: [],
@@ -55,6 +60,10 @@ export const useStore = create<AppState>()(
         { id: '2', cod: 'V-001', name: 'Beto', role: 'Vendedor' },
         { id: '3', cod: 'E-001', name: 'Carlos', role: 'Estoquista' },
       ],
+       suppliers: [
+        { id: '1', cod: 'FOR-001', name: 'Padaria Pão Quente', contactPerson: 'João', phone: '11-98765-4321', email: 'contato@paoquente.com' },
+        { id: '2', cod: 'FOR-002', name: 'Doce Sabor Confeitaria', contactPerson: 'Maria', phone: '11-91234-5678', email: 'vendas@docesabor.com' },
+      ],
       currentUser: null,
       cashRegisterHistory: [],
       currentCashRegister: null,
@@ -63,8 +72,7 @@ export const useStore = create<AppState>()(
       getNextProductCode: () => {
         const { products } = get();
         const prodCodes = products
-            .filter(p => p.cod.startsWith('PROD-'))
-            .map(p => parseInt(p.cod.replace('PROD-', ''), 10))
+            .map(p => parseInt(p.cod.replace(/\D/g, ''), 10))
             .filter(n => !isNaN(n));
         const maxCode = prodCodes.length > 0 ? Math.max(...prodCodes) : 0;
         return `PROD-${(maxCode + 1).toString().padStart(4, '0')}`;
@@ -86,6 +94,15 @@ export const useStore = create<AppState>()(
         }, 0);
 
         return `${prefix}-${(maxCode + 1).toString().padStart(3, '0')}`;
+      },
+      
+      getNextSupplierCode: () => {
+        const { suppliers } = get();
+        const supCodes = suppliers
+            .map(s => parseInt(s.cod.replace(/\D/g, ''), 10))
+            .filter(n => !isNaN(n));
+        const maxCode = supCodes.length > 0 ? Math.max(...supCodes) : 0;
+        return `FOR-${(maxCode + 1).toString().padStart(3, '0')}`;
       },
 
       findProductByCode: (code) => {
@@ -110,6 +127,27 @@ export const useStore = create<AppState>()(
       deleteProduct: (productId) => {
         set((state) => ({
           products: state.products.filter((p) => p.id !== productId),
+        }));
+      },
+
+      addSupplier: (supplierData) => {
+        const newSupplier: Supplier = {
+            ...supplierData,
+            id: new Date().toISOString(),
+            cod: get().getNextSupplierCode(),
+        }
+        set((state) => ({ suppliers: [...state.suppliers, newSupplier] }));
+      },
+      updateSupplier: (updatedSupplier) => {
+        set((state) => ({
+          suppliers: state.suppliers.map((s) =>
+            s.id === updatedSupplier.id ? updatedSupplier : s
+          ),
+        }));
+      },
+      deleteSupplier: (supplierId) => {
+        set((state) => ({
+          suppliers: state.suppliers.filter((s) => s.id !== supplierId),
         }));
       },
 

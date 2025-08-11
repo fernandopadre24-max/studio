@@ -9,6 +9,7 @@ export interface Product {
   price: number;
   stock: number;
   unit: ProductUnit;
+  supplierId?: string;
 }
 
 export interface CartItem extends Product {
@@ -39,6 +40,16 @@ export interface Employee {
   address?: string;
   admissionDate?: string;
   salary?: number;
+}
+
+export interface Supplier {
+    id: string;
+    cod: string;
+    name: string;
+    contactPerson?: string;
+    phone?: string;
+    email?: string;
+    address?: string;
 }
 
 export type CashRegisterStatus = 'aberto' | 'fechado';
