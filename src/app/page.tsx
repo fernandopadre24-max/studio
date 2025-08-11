@@ -13,66 +13,41 @@ import SalesHistory from '@/components/sales-history';
 import EmployeeList from '@/components/employee-list';
 import SupplierList from '@/components/supplier-list';
 import SettingsPage from '@/components/settings';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
 
 type NavItem = 'Caixa' | 'Produtos' | 'Fornecedores' | 'Relatórios' | 'Funcionários' | 'Configurações';
 
-function LoginScreen() {
-    const { login } = useStore();
-    const { toast } = useToast();
-    const [userCode, setUserCode] = useState('');
-    const [password, setPassword] = useState('');
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        const success = login(userCode, password);
-        if (!success) {
-            toast({
-                variant: 'destructive',
-                title: 'Erro de Login',
-                description: 'Código de usuário ou senha incorretos.',
-            });
-        }
-    };
-
+function UserSelectionScreen() {
+    const { employees, login, getRoleName } = useStore();
     return (
         <div className="flex min-h-screen items-center justify-center bg-muted/40">
-            <Card className="w-full max-w-sm">
-                <form onSubmit={handleSubmit}>
-                    <CardHeader>
-                        <CardTitle>Bem-vindo ao PDV</CardTitle>
-                        <CardDescription>Faça login para começar</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="userCode">Código do Usuário</Label>
-                            <Input
-                                id="userCode"
-                                value={userCode}
-                                onChange={(e) => setUserCode(e.target.value)}
-                                required
-                                placeholder="ex: ADM-001"
-                            />
+            <Card className="w-full max-w-2xl">
+                <CardHeader>
+                    <CardTitle>Bem-vindo ao PDV</CardTitle>
+                    <CardDescription>Selecione um usuário para começar</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ScrollArea className="h-[60vh]">
+                        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+                            {employees.map(employee => (
+                                <button
+                                    key={employee.id}
+                                    onClick={() => login(employee.cod)}
+                                    className="flex flex-col items-center justify-center gap-3 rounded-lg border p-4 text-center transition-all hover:bg-accent hover:text-accent-foreground"
+                                >
+                                    <Avatar className="h-16 w-16">
+                                        <AvatarImage src={`https://i.pravatar.cc/150?u=${employee.id}`} />
+                                        <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="text-sm font-medium">{employee.name}</div>
+                                    <div className="text-xs text-muted-foreground">{getRoleName(employee.roleId)}</div>
+                                </button>
+                            ))}
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="password">Senha</Label>
-                            <Input
-                                id="password"
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
-                        </div>
-                    </CardContent>
-                    <CardFooter>
-                        <Button type="submit" className="w-full">
-                            Entrar
-                        </Button>
-                    </CardFooter>
-                </form>
+                    </ScrollArea>
+                </CardContent>
             </Card>
         </div>
     );
@@ -136,7 +111,7 @@ export default function Home() {
   }
 
   if (!currentUser) {
-    return <LoginScreen />;
+    return <UserSelectionScreen />;
   }
 
   return (

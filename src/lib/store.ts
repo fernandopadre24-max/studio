@@ -32,7 +32,7 @@ interface AppState {
   addEmployee: (employee: Omit<Employee, 'id'>) => void;
   updateEmployee: (employee: Employee) => void;
   deleteEmployee: (employeeId: string) => void;
-  login: (userCode: string, password?: string) => boolean;
+  login: (userCode: string) => boolean;
   logout: () => void;
   openCashRegister: (openingBalance: number) => void;
   closeCashRegister: () => void;
@@ -75,7 +75,7 @@ export const useStore = create<AppState>()(
         { id: '1', cod: 'G-001', name: 'Alice', roleId: '1' },
         { id: '2', cod: 'V-001', name: 'Beto', roleId: '2' },
         { id: '3', cod: 'E-001', name: 'Carlos', roleId: '3' },
-        { id: '4', cod: 'ADM-001', name: 'Admin', roleId: '6', password: '2026' },
+        { id: '4', cod: 'ADM-001', name: 'Admin', roleId: '6' },
       ],
        suppliers: [
         { id: '1', cod: 'FOR-001', name: 'Padaria Pão Quente', contactPerson: 'João', phone: '11-98765-4321', email: 'contato@paoquente.com' },
@@ -305,27 +305,12 @@ export const useStore = create<AppState>()(
         }));
       },
       
-      login: (userCode, password) => {
+      login: (userCode: string) => {
         const { employees } = get();
         const employee = employees.find(e => e.cod === userCode);
 
         if (!employee) {
             return false;
-        }
-
-        const storedPassword = employee.password;
-        const enteredPassword = password;
-
-        // If stored password is set, entered password must match.
-        // If stored password is not set (undefined), entered password must be empty ('').
-        if (storedPassword) {
-            if (storedPassword !== enteredPassword) {
-                return false;
-            }
-        } else {
-            if (enteredPassword) { // If user entered a password for an account that doesn't have one
-                return false;
-            }
         }
         
         const roleName = get().getRoleName(employee.roleId);
@@ -394,5 +379,3 @@ export const useStore = create<AppState>()(
     }
   )
 );
-
-    
