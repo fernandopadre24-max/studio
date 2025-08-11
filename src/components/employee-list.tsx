@@ -106,7 +106,7 @@ const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null
     const [name, setName] = useState(employee?.name || '');
     const [cod, setCod] = useState(employee?.cod || '');
     const [roleId, setRoleId] = useState(employee?.roleId || roles[0]?.id || '');
-    const [password, setPassword] = useState(employee?.password || '');
+    const [password, setPassword] = useState('');
     const [cpf, setCpf] = useState(employee?.cpf || '');
     const [rg, setRg] = useState(employee?.rg || '');
     const [phone, setPhone] = useState(employee?.phone || '');
@@ -193,7 +193,7 @@ const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null
                             </div>
                              <div>
                                 <Label htmlFor="password">Senha</Label>
-                                <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder={employee ? "Deixe em branco para não alterar" : ""}/>
+                                <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder={employee ? "Deixe em branco para não alterar" : ""} required={!employee}/>
                             </div>
                             <div>
                                 <Label htmlFor="cpf">CPF</Label>

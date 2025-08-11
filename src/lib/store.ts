@@ -34,7 +34,7 @@ interface AppState {
   addEmployee: (employee: Omit<Employee, 'id'>) => void;
   updateEmployee: (employee: Employee) => void;
   deleteEmployee: (employeeId: string) => void;
-  login: (userCode: string) => boolean;
+  login: (userCode: string, password?: string) => boolean;
   logout: () => void;
   openCashRegister: (openingBalance: number) => void;
   closeCashRegister: () => void;
@@ -62,7 +62,7 @@ const defaultRoles: Role[] = [
     { id: '6', name: 'Administrador', prefix: 'ADM' },
 ]
 
-const APP_STATE_VERSION = 3;
+const APP_STATE_VERSION = 4;
 
 export const useStore = create<AppState>()(
   persist(
@@ -77,11 +77,11 @@ export const useStore = create<AppState>()(
       transactions: [],
       lastTransaction: null,
       employees: [
-        { id: '1', cod: 'G-001', name: 'Alice', roleId: '1' },
-        { id: '2', cod: 'V-001', name: 'Beto', roleId: '2' },
-        { id: '3', cod: 'E-001', name: 'Carlos', roleId: '3' },
-        { id: '4', cod: 'ADM-001', name: 'ADM', roleId: '6' },
-        { id: '5', cod: 'S-001', name: 'Fernando', roleId: '5' },
+        { id: '1', cod: 'G-001', name: 'Alice', roleId: '1', password: '1234' },
+        { id: '2', cod: 'V-001', name: 'Beto', roleId: '2', password: '1234' },
+        { id: '3', cod: 'E-001', name: 'Carlos', roleId: '3', password: '1234' },
+        { id: '4', cod: 'S-001', name: 'Fernando', roleId: '5', password: '1234' },
+        { id: '5', cod: 'ADM-001', name: 'ADM', roleId: '6', password: 'admin' },
       ],
        suppliers: [
         { id: '1', cod: 'FOR-001', name: 'Padaria Pão Quente', contactPerson: 'João', phone: '11-98765-4321', email: 'contato@paoquente.com' },
@@ -311,11 +311,11 @@ export const useStore = create<AppState>()(
         }));
       },
       
-      login: (userCode) => {
+      login: (userCode, password) => {
         const { employees, roles } = get();
         const employee = employees.find((e) => e.cod === userCode);
 
-        if (!employee) {
+        if (!employee || employee.password !== password) {
           return false;
         }
         
@@ -382,15 +382,10 @@ export const useStore = create<AppState>()(
       version: APP_STATE_VERSION,
       migrate: (persistedState, version) => {
         const state = persistedState as AppState;
-        if (version < APP_STATE_VERSION || (state && (!state.employees || !state.employees.find(e => e.cod === 'ADM-001')))) {
-            // If the persisted state version is older than the current version,
-            // or if the ADM user is missing (indicating an older state structure),
-            // we discard the persisted state and use the initial state.
-            // This will effectively "reset" the state on version change or structural mismatch.
+        if (version < APP_STATE_VERSION) {
             const initialState = useStore.getState();
             return {
                 ...initialState, 
-                // We keep the theme settings from the user
                 theme: state?.theme || initialState.theme
             };
         }

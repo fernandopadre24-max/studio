@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, ShoppingCart, Package, BarChart, Users, Settings, Truck, UserCheck } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Package, BarChart, Users, Settings, Truck, UserCheck, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/lib/store';
@@ -14,11 +14,51 @@ import SupplierList from '@/components/supplier-list';
 import SettingsPage from '@/components/settings';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 import type { Employee } from '@/lib/types';
 
 
 function UserSelectionScreen() {
     const { employees, login, getRoleName } = useStore();
+    const { toast } = useToast();
+    const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+    const [password, setPassword] = useState('');
+    const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+
+    const handleEmployeeSelect = (employee: Employee) => {
+        setSelectedEmployee(employee);
+        setIsPasswordDialogOpen(true);
+    };
+
+    const handleLogin = () => {
+        if (!selectedEmployee) return;
+
+        if (login(selectedEmployee.cod, password)) {
+             toast({
+                title: `Bem-vindo, ${selectedEmployee.name.split(' ')[0]}!`,
+                description: "Login realizado com sucesso.",
+            });
+            setIsPasswordDialogOpen(false);
+            setPassword('');
+            setSelectedEmployee(null);
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Senha incorreta',
+                description: 'A senha que você inseriu está incorreta. Tente novamente.',
+            });
+            setPassword('');
+        }
+    };
+
+    const handleDialogClose = () => {
+        setIsPasswordDialogOpen(false);
+        setPassword('');
+        setSelectedEmployee(null);
+    }
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-muted/40">
@@ -35,7 +75,7 @@ function UserSelectionScreen() {
                                     key={employee.id}
                                     variant="outline"
                                     className="w-full justify-start h-auto py-3"
-                                    onClick={() => login(employee.cod)}
+                                    onClick={() => handleEmployeeSelect(employee)}
                                 >
                                     <div className="flex flex-col items-start">
                                         <p className="font-bold">{employee.name}</p>
@@ -47,16 +87,42 @@ function UserSelectionScreen() {
                     </ScrollArea>
                 </CardContent>
             </Card>
+
+            <Dialog open={isPasswordDialogOpen} onOpenChange={handleDialogClose}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2"><KeyRound /> Inserir Senha</DialogTitle>
+                        <DialogDescription>
+                            Olá, <span className="font-bold">{selectedEmployee?.name}</span>. Por favor, insira sua senha para continuar.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-2">
+                        <Label htmlFor="password">Senha</Label>
+                        <Input
+                            id="password"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                            autoFocus
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={handleDialogClose}>Cancelar</Button>
+                        <Button type="button" onClick={handleLogin}>Entrar</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
 
 
 export default function Home() {
-  const { currentUser, login, logout, clearCart } = useStore();
+  const { currentUser, logout, clearCart } = useStore();
   const [activeNav, setActiveNav] = useState<NavItem>('Caixa');
   const [isClient, setIsClient] = useState(false);
-
+  
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -219,5 +285,3 @@ function NavItemButton({ label, icon: Icon, isActive, onClick, disabled }: NavIt
         </Button>
     )
 }
-
-    
