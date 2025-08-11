@@ -312,7 +312,7 @@ export const useStore = create<AppState>()(
         if (!employee) return false;
 
         // If employee has a password, it must match.
-        // If employee has no password, any password (or none) is fine for now.
+        // If employee doesn't have a password, login is allowed without a password.
         if (employee.password && employee.password !== password) {
             return false;
         }
