@@ -4,6 +4,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product, CartItem, Transaction, Employee, CashRegisterSession, ThemeSettings, ProductUnit, Supplier, Role } from '@/lib/types';
 
 interface AppState {
+  version: number; // Add version to force state update
   products: Product[];
   cart: CartItem[];
   transactions: Transaction[];
@@ -60,9 +61,12 @@ const defaultRoles: Role[] = [
     { id: '6', name: 'Administrador', prefix: 'ADM' },
 ]
 
+const APP_STATE_VERSION = 2;
+
 export const useStore = create<AppState>()(
   persist(
     (set, get) => ({
+      version: APP_STATE_VERSION,
       products: [
         { id: '1', cod: '7891000315507', name: 'Café Expresso', price: 5.0, stock: 100, unit: 'UN', supplierId: '1' },
         { id: '2', cod: '7891000051019', name: 'Pão de Queijo', price: 25.0, stock: 5, unit: 'KG', supplierId: '1' },
@@ -75,8 +79,8 @@ export const useStore = create<AppState>()(
         { id: '1', cod: 'G-001', name: 'Alice', roleId: '1' },
         { id: '2', cod: 'V-001', name: 'Beto', roleId: '2' },
         { id: '3', cod: 'E-001', name: 'Carlos', roleId: '3' },
-        { id: '4', cod: 'ADM-001', name: 'ADM', roleId: '6' },
         { id: '5', cod: 'S-001', name: 'Fernando', roleId: '5' },
+        { id: '4', cod: 'ADM-001', name: 'ADM', roleId: '6' },
       ],
        suppliers: [
         { id: '1', cod: 'FOR-001', name: 'Padaria Pão Quente', contactPerson: 'João', phone: '11-98765-4321', email: 'contato@paoquente.com' },
@@ -374,6 +378,16 @@ export const useStore = create<AppState>()(
     {
       name: 'pos-storage',
       storage: createJSONStorage(() => localStorage),
+      version: APP_STATE_VERSION,
+      migrate: (persistedState, version) => {
+        if (version < APP_STATE_VERSION) {
+            // If the persisted state version is older than the current version,
+            // we discard the persisted state and use the initial state.
+            // This will effectively "reset" the state on version change.
+            return (useStore.getState());
+        }
+        return persistedState as AppState;
+      },
       partialize: (state) =>
         Object.fromEntries(
           Object.entries(state).filter(([key]) => !['currentUser', 'currentCashRegister', 'lastTransaction'].includes(key))
@@ -381,3 +395,5 @@ export const useStore = create<AppState>()(
     }
   )
 );
+
+    
