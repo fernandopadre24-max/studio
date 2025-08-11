@@ -76,6 +76,7 @@ export const useStore = create<AppState>()(
         { id: '2', cod: 'V-001', name: 'Beto', roleId: '2' },
         { id: '3', cod: 'E-001', name: 'Carlos', roleId: '3' },
         { id: '4', cod: 'ADM-001', name: 'ADM', roleId: '6' },
+        { id: '5', cod: 'S-001', name: 'Fernando', roleId: '5' },
       ],
        suppliers: [
         { id: '1', cod: 'FOR-001', name: 'Padaria Pão Quente', contactPerson: 'João', phone: '11-98765-4321', email: 'contato@paoquente.com' },
