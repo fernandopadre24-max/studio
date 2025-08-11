@@ -28,7 +28,8 @@ export default function Home() {
     if (!currentUser) {
         login('ADM-001');
     }
-  }, [currentUser, login]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser]);
   
   useEffect(() => {
     if (!currentUser) return;
