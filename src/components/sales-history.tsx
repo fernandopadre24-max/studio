@@ -20,18 +20,19 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Printer, BarChart2 } from 'lucide-react';
+import { Printer, BarChart2, LineChart } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 import { format, formatDistanceStrict } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Transaction } from '@/lib/types';
 import PrintReceipt from './print-receipt';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Line } from 'recharts';
 import { ChartContainer, ChartTooltipContent, ChartTooltip } from '@/components/ui/chart';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
-const SalesChart = ({ data }: { data: { date: string, Total: number }[] }) => {
+const SalesBarChart = ({ data }: { data: { date: string, Total: number }[] }) => {
     const chartConfig = {
         Total: {
             label: 'Total Vendido (R$)',
@@ -74,6 +75,49 @@ const SalesChart = ({ data }: { data: { date: string, Total: number }[] }) => {
     );
 };
 
+const SalesLineChart = ({ data }: { data: { date: string, Total: number }[] }) => {
+    const chartConfig = {
+        Total: {
+            label: 'Total Vendido (R$)',
+            color: 'hsl(var(--primary))',
+        },
+    };
+
+    return (
+        <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+            <ResponsiveContainer>
+                <LineChart data={data} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                    <CartesianGrid vertical={false} />
+                    <XAxis
+                        dataKey="date"
+                        tickLine={false}
+                        tickMargin={10}
+                        axisLine={false}
+                        tickFormatter={(value) => format(new Date(value), "dd/MM")}
+                    />
+                    <YAxis
+                        stroke="#888888"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(value) => `R$${value}`}
+                    />
+                    <Tooltip
+                        cursor={false}
+                        content={<ChartTooltipContent
+                            formatter={(value) => `R$ ${Number(value).toFixed(2)}`}
+                            labelClassName="font-bold"
+                            indicator="dot"
+                        />}
+                    />
+                    <Legend />
+                    <Line type="monotone" dataKey="Total" stroke="var(--color-Total)" strokeWidth={2} dot={false} />
+                </LineChart>
+            </ResponsiveContainer>
+        </ChartContainer>
+    );
+}
+
 
 export default function SalesHistory() {
   const { transactions, cashRegisterHistory } = useStore();
@@ -81,6 +125,7 @@ export default function SalesHistory() {
   const [paymentFilter, setPaymentFilter] = useState('all');
   const [operatorFilter, setOperatorFilter] = useState('');
   const [transactionToPrint, setTransactionToPrint] = useState<Transaction | null>(null);
+  const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
 
   const handlePrint = (tx: Transaction) => {
     setTransactionToPrint(tx);
@@ -172,18 +217,26 @@ export default function SalesHistory() {
     </div>
     <div className="space-y-8">
         <Card className="bg-yellow-100 text-black font-mono">
-            <CardHeader>
-                <CardTitle className="text-black flex items-center gap-2">
-                    <BarChart2 />
-                    Gráfico de Vendas
-                </CardTitle>
-                <CardDescription className="text-black/80">
-                    Visualização do total de vendas por dia.
-                </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div className="space-y-1">
+                    <CardTitle className="text-black flex items-center gap-2">
+                        {chartType === 'bar' ? <BarChart2 /> : <LineChart />}
+                        Gráfico de Vendas
+                    </CardTitle>
+                    <CardDescription className="text-black/80">
+                        Visualização do total de vendas por dia.
+                    </CardDescription>
+                </div>
+                <Tabs value={chartType} onValueChange={(value) => setChartType(value as 'bar' | 'line')} className="font-sans">
+                    <TabsList>
+                        <TabsTrigger value="bar"><BarChart2 className="mr-2" />Barras</TabsTrigger>
+                        <TabsTrigger value="line"><LineChart className="mr-2" />Linhas</TabsTrigger>
+                    </TabsList>
+                </Tabs>
             </CardHeader>
             <CardContent>
                 {salesByDay.length > 0 ? (
-                    <SalesChart data={salesByDay} />
+                    chartType === 'bar' ? <SalesBarChart data={salesByDay} /> : <SalesLineChart data={salesByDay} />
                 ) : (
                     <div className="text-center p-10 text-black/60">
                         Não há dados de vendas suficientes para exibir o gráfico.
