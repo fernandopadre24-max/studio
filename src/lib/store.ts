@@ -62,16 +62,16 @@ const defaultRoles: Role[] = [
     { id: '6', name: 'Administrador', prefix: 'ADM' },
 ]
 
-const APP_STATE_VERSION = 4;
+const APP_STATE_VERSION = 5;
 
 export const useStore = create<AppState>()(
   persist(
     (set, get) => ({
       version: APP_STATE_VERSION,
       products: [
-        { id: '1', cod: '7891000315507', name: 'Café Expresso', price: 5.0, stock: 100, unit: 'UN', supplierId: '1' },
-        { id: '2', cod: '7891000051019', name: 'Pão de Queijo', price: 25.0, stock: 5, unit: 'KG', supplierId: '1' },
-        { id: '3', cod: '7896024921028', name: 'Bolo de Fubá', price: 7.0, stock: 30, unit: 'UN', supplierId: '2' },
+        { id: '1', cod: '0001', name: 'Café Expresso', price: 5.0, stock: 100, unit: 'UN', supplierId: '1' },
+        { id: '2', cod: '0002', name: 'Pão de Queijo', price: 25.0, stock: 5, unit: 'KG', supplierId: '1' },
+        { id: '3', cod: '0003', name: 'Bolo de Fubá', price: 7.0, stock: 30, unit: 'UN', supplierId: '2' },
       ],
       cart: [],
       transactions: [],
@@ -104,10 +104,10 @@ export const useStore = create<AppState>()(
       getNextProductCode: () => {
         const { products } = get();
         const prodCodes = products
-            .map(p => parseInt(p.cod.replace(/\D/g, ''), 10))
+            .map(p => parseInt(p.cod, 10))
             .filter(n => !isNaN(n));
         const maxCode = prodCodes.length > 0 ? Math.max(...prodCodes) : 0;
-        return `PROD-${(maxCode + 1).toString().padStart(4, '0')}`;
+        return (maxCode + 1).toString().padStart(4, '0');
       },
 
       getNextEmployeeCode: (roleId: string) => {
