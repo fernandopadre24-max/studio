@@ -57,6 +57,17 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
             setCod(getNextProductCode());
         }
     }, [product, getNextProductCode]);
+    
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImageUrl(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -75,8 +86,19 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
                 <Input id="name" value={name} onChange={e => setName(e.target.value)} required />
             </div>
              <div>
-                <Label htmlFor="imageUrl">URL da Imagem</Label>
-                <Input id="imageUrl" value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="https://exemplo.com/imagem.png"/>
+                <Label htmlFor="imageUrl">Imagem do Produto</Label>
+                <Input id="imageUrl" type="file" onChange={handleImageChange} accept="image/*" />
+                 {imageUrl && (
+                    <div className="mt-2">
+                        <Image
+                            src={imageUrl}
+                            alt="Pré-visualização"
+                            width={100}
+                            height={100}
+                            className="rounded-md object-cover"
+                        />
+                    </div>
+                 )}
             </div>
             <div className='grid grid-cols-2 gap-4'>
                 <div>
@@ -235,3 +257,4 @@ export default function ProductList() {
     </Card>
   );
 }
+
