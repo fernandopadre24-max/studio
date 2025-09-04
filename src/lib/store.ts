@@ -70,9 +70,9 @@ export const useStore = create<AppState>()(
     (set, get) => ({
       version: APP_STATE_VERSION,
       products: [
-        { id: '1', cod: '0001', name: 'Café Expresso', price: 5.0, stock: 100, unit: 'UN', supplierId: '1', imageUrl: 'https://picsum.photos/id/225/100/100' },
-        { id: '2', cod: '0002', name: 'Pão de Queijo', price: 25.0, stock: 5, unit: 'KG', supplierId: '1', imageUrl: 'https://picsum.photos/id/431/100/100' },
-        { id: '3', cod: '0003', name: 'Bolo de Fubá', price: 7.0, stock: 0, unit: 'UN', supplierId: '2', imageUrl: 'https://picsum.photos/id/1060/100/100' },
+        { id: '1', cod: '0001', name: 'Café Expresso', price: 5.0, stock: 100, unit: 'UN', supplierId: '1', imageUrl: 'https://picsum.photos/id/225/200/200' },
+        { id: '2', cod: '0002', name: 'Pão de Queijo', price: 25.0, stock: 5, unit: 'KG', supplierId: '1', imageUrl: 'https://picsum.photos/id/431/200/200' },
+        { id: '3', cod: '0003', name: 'Bolo de Fubá', price: 7.0, stock: 0, unit: 'UN', supplierId: '2', imageUrl: 'https://picsum.photos/id/1060/200/200' },
       ],
       cart: [],
       transactions: [],
@@ -206,7 +206,19 @@ export const useStore = create<AppState>()(
       addToCart: (product, quantity = 1) => {
         const { cart, products } = get();
         const productInStock = products.find((p) => p.id === product.id);
-        if (!productInStock || productInStock.stock <= 0) {
+        
+        if (!productInStock) {
+             toast({
+                variant: 'destructive',
+                title: 'Erro',
+                description: `Produto não encontrado no sistema.`,
+            });
+            return false;
+        }
+        
+        const availableStock = productInStock.stock;
+        
+        if (availableStock <= 0) {
             toast({
                 variant: 'destructive',
                 title: 'Estoque insuficiente',
@@ -221,11 +233,11 @@ export const useStore = create<AppState>()(
         const currentCartQuantity = existingItem?.quantity || 0;
         const newQuantity = currentCartQuantity + addQuantity;
 
-        if (newQuantity > productInStock.stock) {
+        if (newQuantity > availableStock) {
             toast({
                 variant: 'destructive',
                 title: 'Estoque insuficiente',
-                description: `Você só pode adicionar mais ${productInStock.stock - currentCartQuantity} do produto ${product.name}.`,
+                description: `Você só pode adicionar mais ${availableStock - currentCartQuantity} do produto ${product.name}.`,
             });
             return false;
         }

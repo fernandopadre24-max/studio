@@ -67,7 +67,6 @@ function ProductSelector({ onProductSelect }: { onProductSelect: (product: Produ
     const handleProductClick = (product: Product) => {
         onProductSelect(product);
         if (product.stock <= 0) {
-            // This toast is redundant if the button is disabled, but serves as a backup.
             toast({
                 variant: 'destructive',
                 title: "Produto sem estoque",
@@ -181,6 +180,7 @@ function ProductSelector({ onProductSelect }: { onProductSelect: (product: Produ
                                     width={40}
                                     height={40}
                                     className="rounded-md object-cover h-10 w-10"
+                                    data-ai-hint={`${product.name.split(" ")[0]} product`}
                                     />
                                 ) : (
                                     <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center">
@@ -204,7 +204,7 @@ function ProductSelector({ onProductSelect }: { onProductSelect: (product: Produ
 }
 
 function OpenCashRegisterForm({ onOpen }: { onOpen: (balance: number) => void }) {
-    const [openingBalance, setOpeningBalance] = useState('300.00');
+    const [openingBalance, setOpeningBalance] = useState('');
     const { currentUser } = useStore();
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -230,7 +230,6 @@ function OpenCashRegisterForm({ onOpen }: { onOpen: (balance: number) => void })
                     onChange={(e) => setOpeningBalance(e.target.value)}
                     required
                     placeholder="Fundo de troco"
-                    autoFocus
                 />
             </div>
             <DialogFooter>
@@ -451,7 +450,7 @@ export default function Checkout({ onProductSelect }: { onProductSelect: (produc
                                 variant="destructive" 
                                 size="sm" 
                                 className="font-sans"
-                                disabled={ (currentUser?.roleName !== 'Gerente' && currentUser?.roleName !== 'Vendedor' && currentUser?.roleName !== 'Caixa' && currentUser?.roleName !== 'Supervisor' && currentUser?.roleName !== 'Administrador' ) || cart.length > 0}>
+                                disabled={cart.length > 0}>
                                 <XCircle className="mr-2 h-4 w-4" /> Fechar Caixa
                             </Button>
                         </DialogTrigger>

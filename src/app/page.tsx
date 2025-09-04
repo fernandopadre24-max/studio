@@ -145,15 +145,21 @@ export default function Home() {
 
     // Define the default navigation item based on user role/permissions.
     let initialNav: NavItem = 'Caixa'; // Fallback
-    if (hasCashierAccess) initialNav = 'Caixa';
-    if (hasProductAccess) initialNav = 'Produtos';
-    if (hasEmployeeAccess) initialNav = 'Funcionários';
-    if (hasReportsAccess) initialNav = 'Relatórios';
-    if (hasSettingsAccess) initialNav = 'Configurações';
+    if (hasCashierAccess) {
+      initialNav = 'Caixa';
+    } else if (hasProductAccess) {
+      initialNav = 'Produtos';
+    } else if (hasEmployeeAccess) {
+      initialNav = 'Funcionários';
+    } else if (hasReportsAccess) {
+      initialNav = 'Relatórios';
+    } else if (hasSettingsAccess) {
+      initialNav = 'Configurações';
+    }
     
     setActiveNav(initialNav);
 
-  }, [currentUser]);
+  }, [currentUser, hasCashierAccess, hasProductAccess, hasEmployeeAccess, hasReportsAccess, hasSettingsAccess]);
 
   useEffect(() => {
     if (cart.length === 0) {
@@ -162,7 +168,6 @@ export default function Home() {
   }, [cart]);
 
   const handleLogout = () => {
-    clearCart();
     setHighlightedImage(null);
     logout();
   };
@@ -251,7 +256,7 @@ export default function Home() {
                 <CardContent className="p-2">
                     <div className="aspect-video w-full rounded-md bg-muted flex items-center justify-center relative overflow-hidden">
                         {highlightedImage ? (
-                            <Image src={highlightedImage} alt="Produto destacado" fill className="object-cover" />
+                            <Image src={highlightedImage} alt="Produto destacado" fill className="object-cover" data-ai-hint="product photo" />
                         ) : (
                             <div className="text-muted-foreground flex flex-col items-center gap-2 p-4 text-center">
                                 <ImageIcon className="h-8 w-8" />
