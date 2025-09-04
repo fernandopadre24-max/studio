@@ -47,7 +47,7 @@ import CameraScanner from './camera-scanner';
 import PrintReceipt from './print-receipt';
 import Image from 'next/image';
 
-function ProductSelector() {
+function ProductSelector({ onProductSelect }: { onProductSelect: (product: Product) => void }) {
     const { products, addToCart, findProductByCode } = useStore();
     const { toast } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
@@ -65,6 +65,7 @@ function ProductSelector() {
     }, [products, searchTerm]);
 
     const handleProductClick = (product: Product) => {
+        onProductSelect(product);
         if (product.unit === 'KG' || product.unit === 'G') {
             setWeightProduct(product);
         } else {
@@ -357,6 +358,7 @@ export default function Checkout() {
   const [addition, setAddition] = useState(0);
   const [isPixScannerOpen, setPixScannerOpen] = useState(false);
   const [isCloseDialog, setCloseDialog] = useState(false);
+  const [highlightedImage, setHighlightedImage] = useState<string | null>(null);
   
   const subTotal = useMemo(() => cart.reduce((total, item) => total + item.price * item.quantity, 0), [cart]);
   const total = useMemo(() => subTotal - discount + addition, [subTotal, discount, addition]);
@@ -369,7 +371,13 @@ export default function Checkout() {
         setDiscount(0);
         setAddition(0);
         setAmountPaid('');
+        setHighlightedImage(null);
     }
+  }
+
+  const handleClearCart = () => {
+    clearCart();
+    setHighlightedImage(null);
   }
   
   const totalItems = useMemo(() => cart.length, [cart]);
@@ -395,6 +403,12 @@ export default function Checkout() {
     setPixScannerOpen(false);
     if (data) {
         handleFinalizeSale(data);
+    }
+  }
+  
+  const handleProductSelect = (product: Product) => {
+    if (product.imageUrl) {
+        setHighlightedImage(product.imageUrl);
     }
   }
 
@@ -426,8 +440,22 @@ export default function Checkout() {
     <div className="grid h-full max-h-[calc(100vh-4rem)] grid-cols-1 gap-8 lg:grid-cols-5">
       {/* Product Selection & Cart */}
       <div className="lg:col-span-3">
-        <div className="grid grid-rows-[auto,1fr] gap-4 h-full">
-            <ProductSelector />
+        <div className="grid grid-rows-[auto,auto,1fr] gap-4 h-full">
+            <ProductSelector onProductSelect={handleProductSelect} />
+            <Card>
+                <CardContent className="p-2">
+                    <div className="aspect-video w-full rounded-md bg-muted flex items-center justify-center relative overflow-hidden">
+                        {highlightedImage ? (
+                            <Image src={highlightedImage} alt="Produto destacado" fill className="object-cover" />
+                        ) : (
+                            <div className="text-muted-foreground flex flex-col items-center gap-2">
+                                <ImageIcon className="h-10 w-10" />
+                                <span>Imagem do Produto</span>
+                            </div>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
             <Card className="h-full flex flex-col bg-yellow-100 text-black font-mono">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between text-black">
@@ -454,7 +482,7 @@ export default function Checkout() {
               </CardHeader>
               <CardContent className="flex-1 p-0">
                 <div className="border-t border-b border-dashed border-black/20">
-                  <ScrollArea className="h-[calc(100vh-38rem)]">
+                  <ScrollArea className="h-[calc(100vh-52rem)]">
                     <Table>
                       <TableHeader>
                         <TableRow className="border-dashed border-black/20">
@@ -528,7 +556,7 @@ export default function Checkout() {
                     <span>Nº DE ITENS: {totalItems}</span>
                     <span>QUANTIDADES: {totalQuantity.toFixed(3)}</span>
                 </div>
-                <Button variant="outline" size="sm" onClick={clearCart} disabled={cart.length === 0} className="w-full bg-transparent border-black/20 hover:bg-black/10">Limpar Carrinho</Button>
+                <Button variant="outline" size="sm" onClick={handleClearCart} disabled={cart.length === 0} className="w-full bg-transparent border-black/20 hover:bg-black/10">Limpar Carrinho</Button>
               </CardFooter>
             </Card>
         </div>
