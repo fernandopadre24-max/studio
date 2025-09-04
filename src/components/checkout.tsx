@@ -183,7 +183,7 @@ function ProductSelector() {
 }
 
 function OpenCashRegisterForm({ onOpen }: { onOpen: (balance: number) => void }) {
-    const [openingBalance, setOpeningBalance] = useState('');
+    const [openingBalance, setOpeningBalance] = useState('300');
     const { currentUser } = useStore();
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -603,3 +603,5 @@ export default function Checkout() {
     </>
   );
 }
+
+    
