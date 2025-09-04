@@ -212,7 +212,7 @@ function OpenCashRegisterForm({ onOpen }: { onOpen: (balance: number) => void })
                 />
             </div>
             <DialogFooter>
-                <Button type="submit">Abrir Caixa</Button>
+                <Button type="submit" autoFocus>Abrir Caixa</Button>
             </DialogFooter>
         </form>
     )
@@ -603,5 +603,7 @@ export default function Checkout() {
     </>
   );
 }
+
+    
 
     
