@@ -130,6 +130,12 @@ export default function Home() {
   const [isClient, setIsClient] = useState(false);
   const [highlightedImage, setHighlightedImage] = useState<string | null>(null);
   
+  const hasCashierAccess = currentUser?.roleName === 'Vendedor' || currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Caixa' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
+  const hasEmployeeAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
+  const hasSettingsAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Administrador';
+  const hasProductAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Estoquista' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
+  const hasReportsAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
+  
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -137,16 +143,22 @@ export default function Home() {
   useEffect(() => {
     if (!currentUser) return;
 
-    const isAdminOrManager = currentUser.roleName === 'Gerente' || currentUser.roleName === 'Administrador';
-
-    if (isAdminOrManager) {
-        setActiveNav('Relatórios');
-    } else if (currentUser.roleName === 'Vendedor' || currentUser.roleName === 'Caixa' || currentUser.roleName === 'Supervisor') {
-      setActiveNav('Caixa');
+    let initialNav: NavItem;
+    if (hasReportsAccess) {
+      initialNav = 'Relatórios';
+    } else if (hasCashierAccess) {
+      initialNav = 'Caixa';
+    } else if (hasProductAccess) {
+      initialNav = 'Produtos';
     } else {
-      setActiveNav('Produtos');
+      // Fallback: This case should ideally not be reached if roles are set up correctly.
+      // We can log out the user or show a "no access" page.
+      // For now, let's set a default and the navigation buttons will be disabled.
+      initialNav = 'Caixa'; 
     }
-  }, [currentUser]);
+    setActiveNav(initialNav);
+
+  }, [currentUser, hasReportsAccess, hasCashierAccess, hasProductAccess]);
 
   useEffect(() => {
     if (cart.length === 0) {
@@ -169,26 +181,24 @@ export default function Home() {
   const renderContent = () => {
     switch (activeNav) {
       case 'Caixa':
+        if (!hasCashierAccess) return <div className="text-center text-lg text-muted-foreground">Acesso negado.</div>;
         return <Checkout onProductSelect={handleProductSelect} />;
       case 'Produtos':
+         if (!hasProductAccess) return <div className="text-center text-lg text-muted-foreground">Acesso negado.</div>;
         return <ProductsAndSuppliers />;
       case 'Relatórios':
+         if (!hasReportsAccess) return <div className="text-center text-lg text-muted-foreground">Acesso negado.</div>;
         return <SalesHistory />;
       case 'Funcionários':
+         if (!hasEmployeeAccess) return <div className="text-center text-lg text-muted-foreground">Acesso negado.</div>;
         return <EmployeeList />;
       case 'Configurações':
+         if (!hasSettingsAccess) return <div className="text-center text-lg text-muted-foreground">Acesso negado.</div>;
         return <SettingsPage />;
       default:
         return <div className="text-center text-lg text-muted-foreground">Selecione uma opção no menu.</div>;
     }
   };
-  
-  const hasCashierAccess = currentUser?.roleName === 'Vendedor' || currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Caixa' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
-  const hasEmployeeAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
-  const hasSettingsAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Administrador';
-  const hasProductAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Estoquista' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
-  const hasReportsAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
-
 
   if (!isClient) {
     return (
