@@ -24,7 +24,6 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       }
     ],
-    allowFutureImage: true,
     unoptimized: true,
   },
 };
