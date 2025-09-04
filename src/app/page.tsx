@@ -165,6 +165,7 @@ export default function Home() {
   const hasCashierAccess = currentUser?.roleName === 'Vendedor' || currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Caixa' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
   const hasEmployeeAccess = currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
   const hasSettingsAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Administrador';
+  const hasProductAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Estoquista' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
 
   if (!isClient) {
     return (
@@ -199,6 +200,7 @@ export default function Home() {
               icon={Package}
               isActive={activeNav === 'Produtos'}
               onClick={() => setActiveNav('Produtos')}
+              disabled={!hasProductAccess}
             />
             <NavItemButton
               label="Relatórios"
