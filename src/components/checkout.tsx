@@ -183,7 +183,7 @@ function ProductSelector() {
 }
 
 function OpenCashRegisterForm({ onOpen }: { onOpen: (balance: number) => void }) {
-    const [openingBalance, setOpeningBalance] = useState('300');
+    const [openingBalance, setOpeningBalance] = useState('');
     const { currentUser } = useStore();
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -209,7 +209,6 @@ function OpenCashRegisterForm({ onOpen }: { onOpen: (balance: number) => void })
                     onChange={(e) => setOpeningBalance(e.target.value)}
                     required
                     placeholder="Fundo de troco"
-                    autoFocus
                 />
             </div>
             <DialogFooter>
