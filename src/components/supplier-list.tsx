@@ -49,6 +49,14 @@ const SupplierForm = ({ supplier, onSave, onDone }: { supplier?: Supplier | null
         }
     }, [supplier, getNextSupplierCode]);
 
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let value = e.target.value;
+        value = value.replace(/\D/g, "");
+        value = value.replace(/^(\d{2})(\d)/g, "($1) $2");
+        value = value.replace(/(\d)(\d{4})$/, "$1-$2");
+        setPhone(value);
+    }
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         onSave({ id: supplier?.id, cod, name, contactPerson, phone, email, address });
@@ -74,7 +82,7 @@ const SupplierForm = ({ supplier, onSave, onDone }: { supplier?: Supplier | null
                 </div>
                 <div>
                     <Label htmlFor="phone">Telefone / Celular</Label>
-                    <Input id="phone" value={phone} onChange={e => setPhone(e.target.value)} />
+                    <Input id="phone" value={phone} onChange={handlePhoneChange} maxLength={15} placeholder="(XX) XXXXX-XXXX"/>
                 </div>
             </div>
              <div>
