@@ -14,7 +14,7 @@ import {
   CardDescription
 } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Minus, Plus, Trash2, DollarSign, Search, ShoppingCart, Lock, Unlock, XCircle, QrCode, Camera, CheckCircle, Printer } from 'lucide-react';
+import { Minus, Plus, Trash2, DollarSign, Search, ShoppingCart, Lock, Unlock, XCircle, QrCode, Camera, CheckCircle, Printer, Image as ImageIcon } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -45,6 +45,7 @@ import {
 } from '@/components/ui/dialog';
 import CameraScanner from './camera-scanner';
 import PrintReceipt from './print-receipt';
+import Image from 'next/image';
 
 function ProductSelector() {
     const { products, addToCart, findProductByCode } = useStore();
@@ -167,11 +168,26 @@ function ProductSelector() {
                             onClick={() => handleProductClick(product)}
                             disabled={product.stock <= 0}
                         >
-                            <div className='flex flex-col items-start'>
-                                <p>{product.cod} - {product.name}</p>
-                                <p className='text-sm text-muted-foreground'>
-                                    R$ {product.price.toFixed(2)} / {product.unit} | Estoque: {product.stock}
-                                </p>
+                            <div className="flex items-center gap-4">
+                                {product.imageUrl ? (
+                                    <Image
+                                    src={product.imageUrl}
+                                    alt={product.name}
+                                    width={40}
+                                    height={40}
+                                    className="rounded-md object-cover h-10 w-10"
+                                    />
+                                ) : (
+                                    <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center">
+                                        <ImageIcon className="w-5 h-5 text-muted-foreground" />
+                                    </div>
+                                )}
+                                <div className='flex flex-col items-start'>
+                                    <p>{product.cod} - {product.name}</p>
+                                    <p className='text-sm text-muted-foreground'>
+                                        R$ {product.price.toFixed(2)} / {product.unit} | Estoque: {product.stock}
+                                    </p>
+                                </div>
                             </div>
                         </Button>
                     ))}
@@ -603,7 +619,5 @@ export default function Checkout() {
     </>
   );
 }
-
-    
 
     
