@@ -53,6 +53,12 @@ function UserSelectionScreen() {
             setPassword('');
         }
     };
+    
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleLogin();
+        }
+    }
 
     const handleDialogClose = () => {
         setIsPasswordDialogOpen(false);
@@ -103,7 +109,7 @@ function UserSelectionScreen() {
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                            onKeyDown={handleKeyDown}
                             autoFocus
                         />
                     </div>
@@ -134,7 +140,7 @@ export default function Home() {
     const isAdminOrManager = currentUser.roleName === 'Gerente' || currentUser.roleName === 'Administrador';
 
     if (isAdminOrManager) {
-        setActiveNav('Caixa');
+        setActiveNav('Relatórios');
     } else if (currentUser.roleName === 'Vendedor' || currentUser.roleName === 'Caixa' || currentUser.roleName === 'Supervisor') {
       setActiveNav('Caixa');
     } else {
@@ -178,9 +184,11 @@ export default function Home() {
   };
   
   const hasCashierAccess = currentUser?.roleName === 'Vendedor' || currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Caixa' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
-  const hasEmployeeAccess = currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
+  const hasEmployeeAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
   const hasSettingsAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Administrador';
   const hasProductAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Estoquista' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
+  const hasReportsAccess = currentUser?.roleName === 'Gerente' || currentUser?.roleName === 'Supervisor' || currentUser?.roleName === 'Administrador';
+
 
   if (!isClient) {
     return (
@@ -222,6 +230,7 @@ export default function Home() {
               icon={BarChart}
               isActive={activeNav === 'Relatórios'}
               onClick={() => setActiveNav('Relatórios')}
+              disabled={!hasReportsAccess}
             />
             <NavItemButton
               label="Funcionários"
@@ -242,7 +251,7 @@ export default function Home() {
                 <CardContent className="p-2">
                     <div className="aspect-video w-full rounded-md bg-muted flex items-center justify-center relative overflow-hidden">
                         {highlightedImage ? (
-                            <Image src={highlightedImage} alt="Produto destacado" layout="fill" className="object-cover" />
+                            <Image src={highlightedImage} alt="Produto destacado" fill className="object-cover" />
                         ) : (
                             <div className="text-muted-foreground flex flex-col items-center gap-2 p-4 text-center">
                                 <ImageIcon className="h-8 w-8" />
@@ -262,9 +271,7 @@ export default function Home() {
         </div>
       </aside>
       <main className="flex-1 p-4 sm:p-8 overflow-auto">
-          {activeNav === 'Caixa' && !hasCashierAccess 
-              ? <div className='text-center text-lg text-muted-foreground'>Você não tem permissão para acessar o caixa.</div>
-              : renderContent()}
+          {renderContent()}
       </main>
     </div>
   );

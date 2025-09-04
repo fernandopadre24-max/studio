@@ -66,14 +66,19 @@ function ProductSelector({ onProductSelect }: { onProductSelect: (product: Produ
 
     const handleProductClick = (product: Product) => {
         onProductSelect(product);
+        if (product.stock <= 0) {
+            toast({
+                variant: 'destructive',
+                title: "Produto sem estoque",
+                description: `${product.name} não está disponível.`,
+            });
+            return;
+        }
+
         if (product.unit === 'KG' || product.unit === 'G') {
             setWeightProduct(product);
         } else {
             addToCart(product);
-            toast({
-                title: "Produto adicionado",
-                description: `${product.name} foi adicionado ao carrinho.`,
-            })
         }
     }
     
@@ -81,13 +86,10 @@ function ProductSelector({ onProductSelect }: { onProductSelect: (product: Produ
         if (weightProduct && weight) {
             const quantity = parseFloat(weight);
             if (quantity > 0) {
-                addToCart(weightProduct, quantity);
-                toast({
-                    title: "Produto adicionado",
-                    description: `${quantity}${weightProduct.unit} de ${weightProduct.name} adicionado ao carrinho.`,
-                });
-                setWeightProduct(null);
-                setWeight('');
+                if(addToCart(weightProduct, quantity)) {
+                    setWeightProduct(null);
+                    setWeight('');
+                }
             }
         }
     }
@@ -124,6 +126,7 @@ function ProductSelector({ onProductSelect }: { onProductSelect: (product: Produ
                             value={weight}
                             onChange={(e) => setWeight(e.target.value)}
                             placeholder='0.000'
+                            autoFocus
                         />
                     </div>
                     <DialogFooter>
@@ -200,7 +203,7 @@ function ProductSelector({ onProductSelect }: { onProductSelect: (product: Produ
 }
 
 function OpenCashRegisterForm({ onOpen }: { onOpen: (balance: number) => void }) {
-    const [openingBalance, setOpeningBalance] = useState('');
+    const [openingBalance, setOpeningBalance] = useState('300.00');
     const { currentUser } = useStore();
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -226,6 +229,7 @@ function OpenCashRegisterForm({ onOpen }: { onOpen: (balance: number) => void })
                     onChange={(e) => setOpeningBalance(e.target.value)}
                     required
                     placeholder="Fundo de troco"
+                    autoFocus
                 />
             </div>
             <DialogFooter>
@@ -624,5 +628,3 @@ export default function Checkout({ onProductSelect }: { onProductSelect: (produc
     </>
   );
 }
-
-    

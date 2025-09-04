@@ -23,7 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Printer, BarChart2, LineChart, PieChart } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
-import { format, formatDistanceStrict } from 'date-fns';
+import { format, formatDistanceStrict, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Transaction } from '@/lib/types';
 import PrintReceipt from './print-receipt';
@@ -50,7 +50,7 @@ const SalesBarChart = ({ data }: { data: { date: string, Total: number }[] }) =>
                         tickLine={false}
                         tickMargin={10}
                         axisLine={false}
-                        tickFormatter={(value) => format(new Date(value), "dd/MM")}
+                        tickFormatter={(value) => format(parseISO(value), "dd/MM")}
                     />
                     <YAxis
                         stroke="#888888"
@@ -93,7 +93,7 @@ const SalesLineChart = ({ data }: { data: { date: string, Total: number }[] }) =
                         tickLine={false}
                         tickMargin={10}
                         axisLine={false}
-                        tickFormatter={(value) => format(new Date(value), "dd/MM")}
+                        tickFormatter={(value) => format(parseISO(value), "dd/MM")}
                     />
                     <YAxis
                         stroke="#888888"
@@ -470,5 +470,3 @@ export default function SalesHistory() {
     </>
   );
 }
-
-    

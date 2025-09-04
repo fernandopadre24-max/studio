@@ -48,7 +48,7 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
     const [stock, setStock] = useState(product?.stock || 0);
     const [unit, setUnit] = useState<ProductUnit>(product?.unit || 'UN');
     const [supplierId, setSupplierId] = useState(product?.supplierId || 'none');
-    const [imageUrl, setImageUrl] = useState(product?.imageUrl || '');
+    const [imagePreview, setImagePreview] = useState(product?.imageUrl || '');
     
     const { getNextProductCode, suppliers } = useStore();
 
@@ -63,7 +63,7 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setImageUrl(reader.result as string);
+                setImagePreview(reader.result as string);
             };
             reader.readAsDataURL(file);
         }
@@ -71,7 +71,7 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave({ id: product?.id, name, cod, price, stock, unit, supplierId: supplierId === 'none' ? undefined : supplierId, imageUrl });
+        onSave({ id: product?.id, name, cod, price, stock, unit, supplierId: supplierId === 'none' ? undefined : supplierId, imageUrl: imagePreview });
         onDone();
     };
 
@@ -88,10 +88,10 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
              <div>
                 <Label htmlFor="imageUrl">Imagem do Produto</Label>
                 <Input id="imageUrl" type="file" onChange={handleImageChange} accept="image/*" />
-                 {imageUrl && (
+                 {imagePreview && (
                     <div className="mt-2">
                         <Image
-                            src={imageUrl}
+                            src={imagePreview}
                             alt="Pré-visualização"
                             width={100}
                             height={100}
@@ -228,7 +228,7 @@ export default function ProductList() {
                       width={64}
                       height={64}
                       className="rounded-md object-cover"
-                      data-ai-hint={`${product.name} product`}
+                      data-ai-hint={`${product.name.split(' ')[0]} product`}
                     />
                   ) : (
                     <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center">
@@ -257,4 +257,3 @@ export default function ProductList() {
     </Card>
   );
 }
-

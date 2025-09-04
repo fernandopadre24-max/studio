@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product, CartItem, Transaction, Employee, CashRegisterSession, ThemeSettings, ProductUnit, Supplier, Role } from '@/lib/types';
+import { toast } from '@/hooks/use-toast';
 
 interface AppState {
   version: number; // Add version to force state update
@@ -26,9 +27,9 @@ interface AppState {
   addRole: (role: Omit<Role, 'id'>) => void;
   updateRole: (role: Role) => void;
   deleteRole: (roleId: string) => void;
-  addToCart: (product: Product, quantity?: number) => void;
+  addToCart: (product: Product, quantity?: number) => boolean;
   removeFromCart: (productId: string) => void;
-  updateCartItemQuantity: (productId: string, quantity: number) => void;
+  updateCartItemQuantity: (productId: string, quantity: number) => boolean;
   clearCart: () => void;
   finalizeSale: (paymentMethod: 'Dinheiro' | 'Cartão' | 'PIX', total: number) => Transaction | undefined;
   addEmployee: (employee: Omit<Employee, 'id'>) => void;
@@ -62,7 +63,7 @@ const defaultRoles: Role[] = [
     { id: '6', name: 'Administrador', prefix: 'ADM' },
 ]
 
-const APP_STATE_VERSION = 5;
+const APP_STATE_VERSION = 6;
 
 export const useStore = create<AppState>()(
   persist(
@@ -205,29 +206,39 @@ export const useStore = create<AppState>()(
       addToCart: (product, quantity = 1) => {
         const { cart, products } = get();
         const productInStock = products.find((p) => p.id === product.id);
-        if (!productInStock || productInStock.stock <= 0) return;
+        if (!productInStock) return false;
 
-        const existingItem = cart.find((item) => item.id === product.id);
-        
         const isWeightBased = product.unit === 'KG' || product.unit === 'G';
         const addQuantity = isWeightBased ? quantity : Math.floor(quantity);
+        const existingItem = cart.find((item) => item.id === product.id);
+        const currentCartQuantity = existingItem?.quantity || 0;
+        const newQuantity = currentCartQuantity + addQuantity;
 
+        if (newQuantity > productInStock.stock) {
+            toast({
+                variant: 'destructive',
+                title: 'Estoque insuficiente',
+                description: `Você só pode adicionar mais ${productInStock.stock - currentCartQuantity} do produto ${product.name}.`,
+            });
+            return false;
+        }
 
         if (existingItem) {
-          const newQuantity = existingItem.quantity + addQuantity;
-          if (newQuantity > productInStock.stock) return; // Prevent adding more than in stock
-          
           const newCart = cart.map((item) =>
             item.id === product.id
               ? { ...item, quantity: newQuantity }
               : item
           );
            set({ cart: newCart });
-
         } else {
-           if (addQuantity > productInStock.stock) return;
            set((state) => ({ cart: [...state.cart, { ...product, quantity: addQuantity }] }));
         }
+
+        toast({
+            title: "Produto adicionado",
+            description: `${addQuantity} ${product.unit} de ${product.name} adicionado ao carrinho.`,
+        });
+        return true;
       },
       removeFromCart: (productId) => {
         const { cart } = get();
@@ -237,7 +248,7 @@ export const useStore = create<AppState>()(
       updateCartItemQuantity: (productId, quantity) => {
          const { cart, products } = get();
          const itemToUpdate = cart.find(item => item.id === productId);
-         if (!itemToUpdate) return;
+         if (!itemToUpdate) return false;
  
          const productInStock = products.find(p => p.id === productId)!;
          const availableStock = productInStock.stock;
@@ -245,15 +256,23 @@ export const useStore = create<AppState>()(
          const isWeightBased = itemToUpdate.unit === 'KG' || itemToUpdate.unit === 'G';
          const newQuantity = isWeightBased ? quantity : Math.floor(quantity);
 
-         if(newQuantity > availableStock) return;
+         if(newQuantity > availableStock) {
+            toast({
+                variant: "destructive",
+                title: "Estoque insuficiente",
+                description: `A quantidade máxima para ${itemToUpdate.name} é ${availableStock}.`
+            });
+            return false;
+         };
  
          if (newQuantity <= 0) {
             get().removeFromCart(productId);
-            return;
+            return true;
          }
 
          const newCart = cart.map(item => item.id === productId ? { ...item, quantity: newQuantity } : item);
          set({ cart: newCart });
+         return true;
       },
       clearCart: () => {
          set({ cart: [] });
