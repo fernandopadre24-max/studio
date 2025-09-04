@@ -143,22 +143,24 @@ export default function Home() {
   useEffect(() => {
     if (!currentUser) return;
 
-    let initialNav: NavItem;
-    if (hasReportsAccess) {
-      initialNav = 'Relatórios';
-    } else if (hasCashierAccess) {
-      initialNav = 'Caixa';
-    } else if (hasProductAccess) {
-      initialNav = 'Produtos';
+    let initialNav: NavItem = 'Caixa';
+    const possibleNavs: NavItem[] = [];
+
+    if (hasReportsAccess) possibleNavs.push('Relatórios');
+    if (hasCashierAccess) possibleNavs.push('Caixa');
+    if (hasProductAccess) possibleNavs.push('Produtos');
+    if (hasEmployeeAccess) possibleNavs.push('Funcionários');
+    if (hasSettingsAccess) possibleNavs.push('Configurações');
+
+    if (possibleNavs.length > 0) {
+        initialNav = possibleNavs[0];
     } else {
-      // Fallback: This case should ideally not be reached if roles are set up correctly.
-      // We can log out the user or show a "no access" page.
-      // For now, let's set a default and the navigation buttons will be disabled.
-      initialNav = 'Caixa'; 
+        initialNav = 'Caixa'; 
     }
+    
     setActiveNav(initialNav);
 
-  }, [currentUser, hasReportsAccess, hasCashierAccess, hasProductAccess]);
+  }, [currentUser, hasReportsAccess, hasCashierAccess, hasProductAccess, hasEmployeeAccess, hasSettingsAccess]);
 
   useEffect(() => {
     if (cart.length === 0) {
@@ -221,41 +223,36 @@ export default function Home() {
               <h1 className="text-2xl font-bold">PDV</h1>
           </div>
           <nav className="flex flex-col gap-4">
-            <NavItemButton
+            {hasCashierAccess && <NavItemButton
               label="Caixa"
               icon={LayoutDashboard}
               isActive={activeNav === 'Caixa'}
               onClick={() => setActiveNav('Caixa')}
-              disabled={!hasCashierAccess}
-            />
-            <NavItemButton
+            />}
+            {hasProductAccess && <NavItemButton
               label="Produtos"
               icon={Package}
               isActive={activeNav === 'Produtos'}
               onClick={() => setActiveNav('Produtos')}
-              disabled={!hasProductAccess}
-            />
-            <NavItemButton
+            />}
+            {hasReportsAccess && <NavItemButton
               label="Relatórios"
               icon={BarChart}
               isActive={activeNav === 'Relatórios'}
               onClick={() => setActiveNav('Relatórios')}
-              disabled={!hasReportsAccess}
-            />
-            <NavItemButton
+            />}
+            {hasEmployeeAccess && <NavItemButton
               label="Funcionários"
               icon={Users}
               isActive={activeNav === 'Funcionários'}
               onClick={() => setActiveNav('Funcionários')}
-              disabled={!hasEmployeeAccess}
-            />
-            <NavItemButton
+            />}
+            {hasSettingsAccess && <NavItemButton
               label="Configurações"
               icon={Settings}
               isActive={activeNav === 'Configurações'}
               onClick={() => setActiveNav('Configurações')}
-              disabled={!hasSettingsAccess}
-            />
+            />}
           </nav>
            <Card className="mt-6">
                 <CardContent className="p-2">
