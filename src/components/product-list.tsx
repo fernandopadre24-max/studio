@@ -38,7 +38,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Pen, Trash2, PlusCircle } from 'lucide-react';
+import { Pen, Trash2, PlusCircle, Image as ImageIcon } from 'lucide-react';
+import Image from 'next/image';
 
 const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, onSave: (p: any) => void, onDone: () => void }) => {
     const [name, setName] = useState(product?.name || '');
@@ -47,6 +48,7 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
     const [stock, setStock] = useState(product?.stock || 0);
     const [unit, setUnit] = useState<ProductUnit>(product?.unit || 'UN');
     const [supplierId, setSupplierId] = useState(product?.supplierId || 'none');
+    const [imageUrl, setImageUrl] = useState(product?.imageUrl || '');
     
     const { getNextProductCode, suppliers } = useStore();
 
@@ -58,7 +60,7 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave({ id: product?.id, name, cod, price, stock, unit, supplierId: supplierId === 'none' ? undefined : supplierId });
+        onSave({ id: product?.id, name, cod, price, stock, unit, supplierId: supplierId === 'none' ? undefined : supplierId, imageUrl });
         onDone();
     };
 
@@ -71,6 +73,10 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
             <div>
                 <Label htmlFor="name">Nome do Produto</Label>
                 <Input id="name" value={name} onChange={e => setName(e.target.value)} required />
+            </div>
+             <div>
+                <Label htmlFor="imageUrl">URL da Imagem</Label>
+                <Input id="imageUrl" value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="https://exemplo.com/imagem.png"/>
             </div>
             <div className='grid grid-cols-2 gap-4'>
                 <div>
@@ -180,6 +186,7 @@ export default function ProductList() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-20">Imagem</TableHead>
               <TableHead>Código</TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Fornecedor</TableHead>
@@ -191,6 +198,22 @@ export default function ProductList() {
           <TableBody>
             {products.map((product) => (
               <TableRow key={product.id}>
+                <TableCell>
+                  {product.imageUrl ? (
+                    <Image
+                      src={product.imageUrl}
+                      alt={product.name}
+                      width={64}
+                      height={64}
+                      className="rounded-md object-cover"
+                      data-ai-hint={`${product.name} product`}
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center">
+                        <ImageIcon className="w-6 h-6 text-muted-foreground" />
+                    </div>
+                  )}
+                </TableCell>
                 <TableCell className="font-mono">{product.cod}</TableCell>
                 <TableCell className="font-medium">{product.name}</TableCell>
                 <TableCell>{getSupplierName(product.supplierId)}</TableCell>

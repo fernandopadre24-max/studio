@@ -69,9 +69,9 @@ export const useStore = create<AppState>()(
     (set, get) => ({
       version: APP_STATE_VERSION,
       products: [
-        { id: '1', cod: '0001', name: 'Café Expresso', price: 5.0, stock: 100, unit: 'UN', supplierId: '1' },
-        { id: '2', cod: '0002', name: 'Pão de Queijo', price: 25.0, stock: 5, unit: 'KG', supplierId: '1' },
-        { id: '3', cod: '0003', name: 'Bolo de Fubá', price: 7.0, stock: 30, unit: 'UN', supplierId: '2' },
+        { id: '1', cod: '0001', name: 'Café Expresso', price: 5.0, stock: 100, unit: 'UN', supplierId: '1', imageUrl: 'https://picsum.photos/id/225/100' },
+        { id: '2', cod: '0002', name: 'Pão de Queijo', price: 25.0, stock: 5, unit: 'KG', supplierId: '1', imageUrl: 'https://picsum.photos/id/431/100' },
+        { id: '3', cod: '0003', name: 'Bolo de Fubá', price: 7.0, stock: 30, unit: 'UN', supplierId: '2', imageUrl: 'https://picsum.photos/id/1060/100' },
       ],
       cart: [],
       transactions: [],
@@ -84,8 +84,8 @@ export const useStore = create<AppState>()(
         { id: '5', cod: 'ADM-001', name: 'ADM', roleId: '6', password: 'admin' },
       ],
        suppliers: [
-        { id: '1', cod: 'FOR-001', name: 'Padaria Pão Quente', contactPerson: 'João', phone: '11-98765-4321', email: 'contato@paoquente.com' },
-        { id: '2', cod: 'FOR-002', name: 'Doce Sabor Confeitaria', contactPerson: 'Maria', phone: '11-91234-5678', email: 'vendas@docesabor.com' },
+        { id: '1', cod: 'FOR-001', name: 'Padaria Pão Quente', contactPerson: 'João', phone: '(11) 98765-4321', email: 'contato@paoquente.com' },
+        { id: '2', cod: 'FOR-002', name: 'Doce Sabor Confeitaria', contactPerson: 'Maria', phone: '(11) 91234-5678', email: 'vendas@docesabor.com' },
       ],
       roles: defaultRoles,
       currentUser: null,
@@ -295,7 +295,7 @@ export const useStore = create<AppState>()(
       },
 
       addEmployee: (employeeData) => {
-        const newEmployee: Employee = { ...employeeData, id: new Date().toISOString() };
+        const newEmployee: Employee = { ...employeeData, id: new Date().toISOString(), password: employeeData.password || '' };
         set((state) => ({ employees: [...state.employees, newEmployee] }));
       },
       updateEmployee: (updatedEmployee) => {

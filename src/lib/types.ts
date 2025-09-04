@@ -10,6 +10,7 @@ export interface Product {
   stock: number;
   unit: ProductUnit;
   supplierId?: string;
+  imageUrl?: string;
 }
 
 export interface CartItem extends Product {
@@ -60,7 +61,7 @@ export interface Supplier {
 export type CashRegisterStatus = 'aberto' | 'fechado';
 
 export interface CashRegisterSession {
-  id: string;
+  id:string;
   openingTime: string;
   closingTime?: string;
   openingBalance: number;
