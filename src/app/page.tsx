@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, ShoppingCart, Package, BarChart, Users, Settings, UserCheck, KeyRound } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Package, BarChart, Users, Settings, UserCheck, KeyRound, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/lib/store';
@@ -16,8 +16,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import type { Employee } from '@/lib/types';
+import type { Employee, Product } from '@/lib/types';
 import ProductsAndSuppliers from '@/components/products-and-suppliers';
+import Image from 'next/image';
 
 
 function UserSelectionScreen() {
@@ -118,9 +119,10 @@ function UserSelectionScreen() {
 
 
 export default function Home() {
-  const { currentUser, logout, clearCart } = useStore();
+  const { currentUser, logout, clearCart, cart } = useStore();
   const [activeNav, setActiveNav] = useState<NavItem>('Caixa');
   const [isClient, setIsClient] = useState(false);
+  const [highlightedImage, setHighlightedImage] = useState<string | null>(null);
   
   useEffect(() => {
     setIsClient(true);
@@ -140,15 +142,28 @@ export default function Home() {
     }
   }, [currentUser]);
 
+  useEffect(() => {
+    if (cart.length === 0) {
+      setHighlightedImage(null);
+    }
+  }, [cart]);
+
   const handleLogout = () => {
     clearCart();
+    setHighlightedImage(null);
     logout();
   };
+
+  const handleProductSelect = (product: Product) => {
+    if (product.imageUrl) {
+        setHighlightedImage(product.imageUrl);
+    }
+  }
 
   const renderContent = () => {
     switch (activeNav) {
       case 'Caixa':
-        return <Checkout />;
+        return <Checkout onProductSelect={handleProductSelect} />;
       case 'Produtos':
         return <ProductsAndSuppliers />;
       case 'Relatórios':
@@ -223,6 +238,20 @@ export default function Home() {
               disabled={!hasSettingsAccess}
             />
           </nav>
+           <Card className="mt-6">
+                <CardContent className="p-2">
+                    <div className="aspect-video w-full rounded-md bg-muted flex items-center justify-center relative overflow-hidden">
+                        {highlightedImage ? (
+                            <Image src={highlightedImage} alt="Produto destacado" layout="fill" className="object-cover" />
+                        ) : (
+                            <div className="text-muted-foreground flex flex-col items-center gap-2 p-4 text-center">
+                                <ImageIcon className="h-8 w-8" />
+                                <span className="text-xs">A imagem do produto selecionado aparecerá aqui.</span>
+                            </div>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
         </div>
         <div className='space-y-2'>
             <div className='p-3 rounded-md bg-secondary text-secondary-foreground text-sm'>
