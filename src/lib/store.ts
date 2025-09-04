@@ -70,9 +70,9 @@ export const useStore = create<AppState>()(
     (set, get) => ({
       version: APP_STATE_VERSION,
       products: [
-        { id: '1', cod: '0001', name: 'Café Expresso', price: 5.0, stock: 100, unit: 'UN', supplierId: '1', imageUrl: 'https://picsum.photos/id/225/100' },
-        { id: '2', cod: '0002', name: 'Pão de Queijo', price: 25.0, stock: 5, unit: 'KG', supplierId: '1', imageUrl: 'https://picsum.photos/id/431/100' },
-        { id: '3', cod: '0003', name: 'Bolo de Fubá', price: 7.0, stock: 30, unit: 'UN', supplierId: '2', imageUrl: 'https://picsum.photos/id/1060/100' },
+        { id: '1', cod: '0001', name: 'Café Expresso', price: 5.0, stock: 100, unit: 'UN', supplierId: '1', imageUrl: 'https://picsum.photos/id/225/100/100' },
+        { id: '2', cod: '0002', name: 'Pão de Queijo', price: 25.0, stock: 5, unit: 'KG', supplierId: '1', imageUrl: 'https://picsum.photos/id/431/100/100' },
+        { id: '3', cod: '0003', name: 'Bolo de Fubá', price: 7.0, stock: 0, unit: 'UN', supplierId: '2', imageUrl: 'https://picsum.photos/id/1060/100/100' },
       ],
       cart: [],
       transactions: [],
@@ -118,7 +118,7 @@ export const useStore = create<AppState>()(
 
         const prefix = role.prefix;
         
-        const roleEmployees = employees.filter(e => e.cod.startsWith(`${prefix}-`));
+        const roleEmployees = employees.filter(e => e.cod && e.cod.startsWith(`${prefix}-`));
         const maxCode = roleEmployees.reduce((max, e) => {
             const codeNum = parseInt(e.cod.split('-')[1]);
             return codeNum > max ? codeNum : max;
@@ -206,7 +206,14 @@ export const useStore = create<AppState>()(
       addToCart: (product, quantity = 1) => {
         const { cart, products } = get();
         const productInStock = products.find((p) => p.id === product.id);
-        if (!productInStock) return false;
+        if (!productInStock || productInStock.stock <= 0) {
+            toast({
+                variant: 'destructive',
+                title: 'Estoque insuficiente',
+                description: `O produto ${product.name} está indisponível.`,
+            });
+            return false;
+        }
 
         const isWeightBased = product.unit === 'KG' || product.unit === 'G';
         const addQuantity = isWeightBased ? quantity : Math.floor(quantity);

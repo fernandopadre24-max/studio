@@ -67,6 +67,7 @@ function ProductSelector({ onProductSelect }: { onProductSelect: (product: Produ
     const handleProductClick = (product: Product) => {
         onProductSelect(product);
         if (product.stock <= 0) {
+            // This toast is redundant if the button is disabled, but serves as a backup.
             toast({
                 variant: 'destructive',
                 title: "Produto sem estoque",

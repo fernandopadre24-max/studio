@@ -48,7 +48,7 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
     const [stock, setStock] = useState(product?.stock || 0);
     const [unit, setUnit] = useState<ProductUnit>(product?.unit || 'UN');
     const [supplierId, setSupplierId] = useState(product?.supplierId || 'none');
-    const [imagePreview, setImagePreview] = useState(product?.imageUrl || '');
+    const [imageUrl, setImageUrl] = useState(product?.imageUrl || '');
     
     const { getNextProductCode, suppliers } = useStore();
 
@@ -57,13 +57,25 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
             setCod(getNextProductCode());
         }
     }, [product, getNextProductCode]);
+
+    useEffect(() => {
+        if (product) {
+            setName(product.name);
+            setCod(product.cod);
+            setPrice(product.price);
+            setStock(product.stock);
+            setUnit(product.unit);
+            setSupplierId(product.supplierId || 'none');
+            setImageUrl(product.imageUrl || '');
+        }
+    }, [product]);
     
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setImagePreview(reader.result as string);
+                setImageUrl(reader.result as string);
             };
             reader.readAsDataURL(file);
         }
@@ -71,7 +83,7 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave({ id: product?.id, name, cod, price, stock, unit, supplierId: supplierId === 'none' ? undefined : supplierId, imageUrl: imagePreview });
+        onSave({ id: product?.id, name, cod, price, stock, unit, supplierId: supplierId === 'none' ? undefined : supplierId, imageUrl: imageUrl });
         onDone();
     };
 
@@ -88,10 +100,10 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
              <div>
                 <Label htmlFor="imageUrl">Imagem do Produto</Label>
                 <Input id="imageUrl" type="file" onChange={handleImageChange} accept="image/*" />
-                 {imagePreview && (
+                 {imageUrl && (
                     <div className="mt-2">
                         <Image
-                            src={imagePreview}
+                            src={imageUrl}
                             alt="Pré-visualização"
                             width={100}
                             height={100}

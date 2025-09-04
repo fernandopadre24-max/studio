@@ -143,24 +143,17 @@ export default function Home() {
   useEffect(() => {
     if (!currentUser) return;
 
-    let initialNav: NavItem = 'Caixa';
-    const possibleNavs: NavItem[] = [];
-
-    if (hasReportsAccess) possibleNavs.push('Relatórios');
-    if (hasCashierAccess) possibleNavs.push('Caixa');
-    if (hasProductAccess) possibleNavs.push('Produtos');
-    if (hasEmployeeAccess) possibleNavs.push('Funcionários');
-    if (hasSettingsAccess) possibleNavs.push('Configurações');
-
-    if (possibleNavs.length > 0) {
-        initialNav = possibleNavs[0];
-    } else {
-        initialNav = 'Caixa'; 
-    }
+    // Define the default navigation item based on user role/permissions.
+    let initialNav: NavItem = 'Caixa'; // Fallback
+    if (hasCashierAccess) initialNav = 'Caixa';
+    if (hasProductAccess) initialNav = 'Produtos';
+    if (hasEmployeeAccess) initialNav = 'Funcionários';
+    if (hasReportsAccess) initialNav = 'Relatórios';
+    if (hasSettingsAccess) initialNav = 'Configurações';
     
     setActiveNav(initialNav);
 
-  }, [currentUser, hasReportsAccess, hasCashierAccess, hasProductAccess, hasEmployeeAccess, hasSettingsAccess]);
+  }, [currentUser]);
 
   useEffect(() => {
     if (cart.length === 0) {
