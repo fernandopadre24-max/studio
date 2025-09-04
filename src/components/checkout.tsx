@@ -209,10 +209,11 @@ function OpenCashRegisterForm({ onOpen }: { onOpen: (balance: number) => void })
                     onChange={(e) => setOpeningBalance(e.target.value)}
                     required
                     placeholder="Fundo de troco"
+                    autoFocus
                 />
             </div>
             <DialogFooter>
-                <Button type="submit" autoFocus>Abrir Caixa</Button>
+                <Button type="submit">Abrir Caixa</Button>
             </DialogFooter>
         </form>
     )
