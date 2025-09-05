@@ -34,18 +34,30 @@ import {
 import { Pen, Trash2, PlusCircle } from 'lucide-react';
 
 const SupplierForm = ({ supplier, onSave, onDone }: { supplier?: Supplier | null, onSave: (s: any) => void, onDone: () => void }) => {
-    const [name, setName] = useState(supplier?.name || '');
-    const [cod, setCod] = useState(supplier?.cod || '');
-    const [contactPerson, setContactPerson] = useState(supplier?.contactPerson || '');
-    const [phone, setPhone] = useState(supplier?.phone || '');
-    const [email, setEmail] = useState(supplier?.email || '');
-    const [address, setAddress] = useState(supplier?.address || '');
-
     const { getNextSupplierCode } = useStore();
+    
+    const [name, setName] = useState('');
+    const [cod, setCod] = useState('');
+    const [contactPerson, setContactPerson] = useState('');
+    const [phone, setPhone] = useState('');
+    const [email, setEmail] = useState('');
+    const [address, setAddress] = useState('');
 
     useEffect(() => {
-        if (!supplier) {
+        if (supplier) {
+            setName(supplier.name);
+            setCod(supplier.cod);
+            setContactPerson(supplier.contactPerson || '');
+            setPhone(supplier.phone || '');
+            setEmail(supplier.email || '');
+            setAddress(supplier.address || '');
+        } else {
+            setName('');
             setCod(getNextSupplierCode());
+            setContactPerson('');
+            setPhone('');
+            setEmail('');
+            setAddress('');
         }
     }, [supplier, getNextSupplierCode]);
 

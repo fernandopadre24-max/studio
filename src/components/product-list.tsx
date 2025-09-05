@@ -42,21 +42,16 @@ import { Pen, Trash2, PlusCircle, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 
 const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, onSave: (p: any) => void, onDone: () => void }) => {
-    const [name, setName] = useState(product?.name || '');
-    const [cod, setCod] = useState(product?.cod || '');
-    const [price, setPrice] = useState(product?.price || 0);
-    const [stock, setStock] = useState(product?.stock || 0);
-    const [unit, setUnit] = useState<ProductUnit>(product?.unit || 'UN');
-    const [supplierId, setSupplierId] = useState(product?.supplierId || 'none');
-    const [imageUrl, setImageUrl] = useState(product?.imageUrl || '');
-    
     const { getNextProductCode, suppliers } = useStore();
 
-    useEffect(() => {
-        if (!product) {
-            setCod(getNextProductCode());
-        }
-    }, [product, getNextProductCode]);
+    const [name, setName] = useState('');
+    const [cod, setCod] = useState('');
+    const [price, setPrice] = useState(0);
+    const [stock, setStock] = useState(0);
+    const [unit, setUnit] = useState<ProductUnit>('UN');
+    const [supplierId, setSupplierId] = useState('none');
+    const [imageUrl, setImageUrl] = useState('');
+    
 
     useEffect(() => {
         if (product) {
@@ -67,8 +62,17 @@ const ProductForm = ({ product, onSave, onDone }: { product?: Product | null, on
             setUnit(product.unit);
             setSupplierId(product.supplierId || 'none');
             setImageUrl(product.imageUrl || '');
+        } else {
+            // For a new product, reset all fields
+            setName('');
+            setCod(getNextProductCode());
+            setPrice(0);
+            setStock(0);
+            setUnit('UN');
+            setSupplierId('none');
+            setImageUrl('');
         }
-    }, [product]);
+    }, [product, getNextProductCode]);
     
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -240,7 +244,7 @@ export default function ProductList() {
                       width={64}
                       height={64}
                       className="rounded-md object-cover"
-                      data-ai-hint={`${product.name.split(' ')[0]} product`}
+                      data-ai-hint={`${product.name.split(" ")[0]} product`}
                     />
                   ) : (
                     <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center">

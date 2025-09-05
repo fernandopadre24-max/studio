@@ -103,22 +103,44 @@ const EmployeeDetails = ({ employee }: { employee: Employee }) => {
 
 const EmployeeForm = ({ employee, onSave, onDone }: { employee?: Employee | null, onSave: (e: any) => void, onDone: () => void }) => {
     const { roles, getNextEmployeeCode } = useStore();
-    const [name, setName] = useState(employee?.name || '');
-    const [cod, setCod] = useState(employee?.cod || '');
-    const [roleId, setRoleId] = useState(employee?.roleId || roles[0]?.id || '');
+    const [name, setName] = useState('');
+    const [cod, setCod] = useState('');
+    const [roleId, setRoleId] = useState('');
     const [password, setPassword] = useState('');
-    const [cpf, setCpf] = useState(employee?.cpf || '');
-    const [rg, setRg] = useState(employee?.rg || '');
-    const [phone, setPhone] = useState(employee?.phone || '');
-    const [address, setAddress] = useState(employee?.address || '');
-    const [admissionDate, setAdmissionDate] = useState(employee?.admissionDate || '');
-    const [salary, setSalary] = useState(employee?.salary || 0);
+    const [cpf, setCpf] = useState('');
+    const [rg, setRg] = useState('');
+    const [phone, setPhone] = useState('');
+    const [address, setAddress] = useState('');
+    const [admissionDate, setAdmissionDate] = useState('');
+    const [salary, setSalary] = useState(0);
 
     useEffect(() => {
-        if (!employee && roleId) {
-            setCod(getNextEmployeeCode(roleId));
+        if (employee) {
+            setName(employee.name);
+            setCod(employee.cod);
+            setRoleId(employee.roleId);
+            setCpf(employee.cpf || '');
+            setRg(employee.rg || '');
+            setPhone(employee.phone || '');
+            setAddress(employee.address || '');
+            setAdmissionDate(employee.admissionDate || '');
+            setSalary(employee.salary || 0);
+            setPassword(''); // Clear password field for editing
+        } else {
+            // New employee
+            const defaultRoleId = roles[0]?.id || '';
+            setRoleId(defaultRoleId);
+            setCod(getNextEmployeeCode(defaultRoleId));
+            setName('');
+            setCpf('');
+            setRg('');
+            setPhone('');
+            setAddress('');
+            setAdmissionDate('');
+            setSalary(0);
+            setPassword('');
         }
-    }, [employee, roleId, getNextEmployeeCode]);
+    }, [employee, roles, getNextEmployeeCode]);
 
     const handleRoleChange = (newRoleId: string) => {
         setRoleId(newRoleId);
